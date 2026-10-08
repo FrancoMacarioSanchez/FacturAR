@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}
+Monotributo | FacturAR
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- HEADER -->
+    <div>
+        <div class="flex items-center gap-3">
+
+            <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="w-6 h-6"
+                     fill="none"
+                     viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="1.8"
+                          d="M9 14.25l6-6m-7.5 0h.008v.008H7.5V8.25zm9 7.5h.008v.008H16.5v-.008zM6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/>
+                </svg>
+            </div>
+
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">
+                    Monotributo
+                </h1>
+
+                <p class="text-sm text-slate-500">
+                    Categorías y límites vigentes de ARCA
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- CATEGORIA DEL CLIENTE -->
+    {% if categoria_tenant %}
+
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+
+        <div class="p-6">
+
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+                <div>
+
+                    <div class="flex items-center gap-3 mb-2">
+
+                        <span class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl font-bold">
+                            {{ categoria_tenant.categoria }}
+                        </span>
+
+                        <div>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">
+                                Tu categoría
+                            </p>
+
+                            <h2 class="text-xl font-bold text-slate-900">
+                                Monotributo {{ categoria_tenant.categoria }}
+                            </h2>
+                        </div>
+
+                    </div>
+
+                    <p class="text-sm text-slate-500">
+                        FacturAR utiliza los comprobantes aprobados de los últimos
+                        12 meses para mostrar el nivel de consumo del límite.
+                    </p>
+
+                </div>
+
+
+                <div class="text-left lg:text-right">
+
+                    <p class="text-xs text-slate-400 uppercase tracking-wide">
+                        Máximo anual
+                    </p>
+
+                    <p class="text-2xl font-bold text-slate-900">
+                        ${{ categoria_tenant.ingresos_brutos_anuales|floatformat:2 }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% elif request.tenant.condicion_fiscal == "MONOTRIBUTO" %}
+
+    <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6">
+
+        <div class="flex gap-4">
+
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                !
+            </div>
+
+            <div>
+
+                <h3 class="font-semibold text-amber-900">
+                    Categoría no configurada
+                </h3>
+
+                <p class="text-sm text-amber-800 mt-1">
+                    Este contribuyente está configurado como Monotributista,
+                    pero todavía no tiene asignada una categoría.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- TABLA -->
+
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+
+        <div class="p-6 border-b border-slate-100">
+
+            <h2 class="text-lg font-bold text-slate-900">
+                Categorías vigentes
+            </h2>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Valores publicados por ARCA desde el 1 de agosto de 2026.
+            </p>
+
+        </div>
+
+
+        <div class="overflow-x-auto">
+
+            <table class="min-w-full text-sm">
+
+                <thead class="bg-slate-50">
+
+                    <tr>
+
+                        <th class="px-6 py-4 text-left font-semibold text-slate-600">
+                            Categoría
+                        </th>
+
+                        <th class="px-6 py-4 text-right font-semibold text-slate-600">
+                            Ingresos brutos
+                        </th>
+
+                        <th class="px-6 py-4 text-right font-semibold text-slate-600">
+                            Superficie
+                        </th>
+
+                        <th class="px-6 py-4 text-right font-semibold text-slate-600">
+                            Energía
+                        </th>
+
+                        <th class="px-6 py-4 text-right font-semibold text-slate-600">
+                            Alquiler anual
+                        </th>
+
+                        <th class="px-6 py-4 text-right font-semibold text-slate-600">
+                            Precio unitario
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for categoria in categorias %}
+
+                    <tr
+                        class="
+                            {% if categoria_tenant and categoria.categoria == categoria_tenant.categoria %}
+                                bg-indigo-50/60
+                            {% else %}
+                                bg-white
+                            {% endif %}
+                        "
+                    >
+
+                        <td class="px-6 py-5">
+
+                            <div class="flex items-center gap-3">
+
+                                <span class="w-9 h-9 rounded-xl
+                                    {% if categoria_tenant and categoria.categoria == categoria_tenant.categoria %}
+                                        bg-indigo-600 text-white
+                                    {% else %}
+                                        bg-slate-100 text-slate-700
+                                    {% endif %}
+                                    flex items-center justify-center font-bold"
+                                >
+                                    {{ categoria.categoria }}
+                                </span>
+
+                                {% if categoria_tenant and categoria.categoria == categoria_tenant.categoria %}
+
+                                <span class="px-2 py-1 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-semibold">
+                                    Tu categoría
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </td>
+
+
+                        <td class="px-6 py-5 text-right font-semibold text-slate-900 whitespace-nowrap">
+                            ${{ categoria.ingresos_brutos_anuales|floatformat:2 }}
+                        </td>
+
+
+                        <td class="px-6 py-5 text-right text-slate-600 whitespace-nowrap">
+                            {{ categoria.superficie_display }}
+                        </td>
+
+
+                        <td class="px-6 py-5 text-right text-slate-600 whitespace-nowrap">
+                            {{ categoria.energia_maxima_kw|floatformat:0 }} kWh
+                        </td>
+
+
+                        <td class="px-6 py-5 text-right text-slate-600 whitespace-nowrap">
+                            ${{ categoria.alquileres_maximos_anuales|floatformat:2 }}
+                        </td>
+
+
+                        <td class="px-6 py-5 text-right text-slate-600 whitespace-nowrap">
+                            ${{ categoria.precio_unitario_maximo|floatformat:2 }}
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                            No hay categorías cargadas.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- INFORMACION -->
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+        <div class="bg-white border border-slate-200 rounded-3xl p-6">
+
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                $
+            </div>
+
+            <h3 class="font-semibold text-slate-900">
+                Ingresos brutos
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Es el principal límite económico utilizado para determinar
+                la categoría del Monotributo.
+            </p>
+
+        </div>
+
+
+        <div class="bg-white border border-slate-200 rounded-3xl p-6">
+
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
+                m²
+            </div>
+
+            <h3 class="font-semibold text-slate-900">
+                Superficie y energía
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Dependiendo de la actividad, también deben considerarse
+                superficie afectada y consumo anual de energía.
+            </p>
+
+        </div>
+
+
+        <div class="bg-white border border-slate-200 rounded-3xl p-6">
+
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
+                $
+            </div>
+
+            <h3 class="font-semibold text-slate-900">
+                Alquiler y precio unitario
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                También existen límites para alquileres devengados y
+                precio unitario máximo de venta de cosas muebles.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

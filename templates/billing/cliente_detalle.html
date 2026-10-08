@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ cliente.nombre }} · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    Cliente
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <a
+        href="{% url 'billing:clientes' %}"
+        class="text-sm text-slate-500 hover:text-indigo-600"
+    >
+        ← Clientes
+    </a>
+
+    <form
+        method="post"
+        class="card bg-white rounded-2xl p-6 mt-5"
+    >
+
+        {% csrf_token %}
+
+        <div class="mb-7">
+
+            <h2 class="text-xl font-bold">
+                {{ cliente.nombre }}
+            </h2>
+
+            <p class="text-sm text-slate-400">
+                Datos del cliente
+            </p>
+
+        </div>
+
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <div class="md:col-span-2">
+
+                <label class="text-sm font-semibold">
+                    Nombre / Razón social
+                </label>
+
+                <input
+                    name="nombre"
+                    value="{{ cliente.nombre }}"
+                    required
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Tipo de documento
+                </label>
+
+                <select
+                    name="tipo_documento"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                        bg-white
+                    "
+                >
+
+                    {% for value, label in tipos_documento %}
+
+                        <option
+                            value="{{ value }}"
+                            {% if cliente.tipo_documento == value %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ label }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Documento
+                </label>
+
+                <input
+                    name="numero_documento"
+                    value="{{ cliente.numero_documento }}"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Condición fiscal
+                </label>
+
+                <input
+                    name="condicion_fiscal"
+                    value="{{ cliente.condicion_fiscal }}"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    name="email"
+                    value="{{ cliente.email }}"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Teléfono
+                </label>
+
+                <input
+                    name="telefono"
+                    value="{{ cliente.telefono }}"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Dirección
+                </label>
+
+                <input
+                    name="direccion"
+                    value="{{ cliente.direccion }}"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Localidad
+                </label>
+
+                <input
+                    name="localidad"
+                    value="{{ cliente.localidad }}"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="text-sm font-semibold">
+                    Provincia
+                </label>
+
+                <input
+                    name="provincia"
+                    value="{{ cliente.provincia }}"
+                    class="
+                        mt-2
+                        w-full
+                        px-4
+                        py-3
+                        rounded-xl
+                        border
+                        border-slate-200
+                    "
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="flex justify-end mt-8">
+
+            <button
+                class="
+                    px-6
+                    py-3
+                    rounded-xl
+                    bg-indigo-600
+                    hover:bg-indigo-700
+                    text-white
+                    font-semibold
+                "
+            >
+                Guardar cambios
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

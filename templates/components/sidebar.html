@@ -1,0 +1,107 @@
+<aside
+    class="sidebar"
+    id="sidebar"
+>
+
+    <nav class="sidebar-nav">
+
+        <div class="nav-section">
+
+            <span class="nav-section-title">
+                Principal
+            </span>
+
+            <a
+                href="{% url 'billing:dashboard' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">⌂</span>
+                <span>Inicio</span>
+            </a>
+
+
+            <a
+                href="{% url 'billing:facturar' %}"
+                class="nav-item nav-item-primary"
+            >
+                <span class="nav-icon">＋</span>
+                <span>Facturar</span>
+            </a>
+
+
+            <a
+                href="{% url 'billing:comprobantes' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">▤</span>
+                <span>Comprobantes</span>
+            </a>
+
+        </div>
+
+
+        <div class="nav-section">
+
+            <span class="nav-section-title">
+                Gestión
+            </span>
+
+
+            <a
+                href="{% url 'billing:clientes' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">♙</span>
+                <span>Clientes</span>
+            </a>
+
+
+            <a
+                href="{% url 'billing:puntos_venta' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">▦</span>
+                <span>Puntos de venta</span>
+            </a>
+
+        </div>
+
+
+        <div class="nav-section">
+
+            <span class="nav-section-title">
+                ARCA
+            </span>
+
+
+            <a
+                href="{% url 'arca_gateway:configuracion' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">✓</span>
+                <span>Conexión ARCA</span>
+            </a>
+
+        </div>
+
+
+        <div class="nav-section">
+
+            <span class="nav-section-title">
+                Cuenta
+            </span>
+
+
+            <a
+                href="{% url 'tenant:configuracion' %}"
+                class="nav-item"
+            >
+                <span class="nav-icon">⚙</span>
+                <span>Configuración</span>
+            </a>
+
+        </div>
+
+    </nav>
+
+</aside>

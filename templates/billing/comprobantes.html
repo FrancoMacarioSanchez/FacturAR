@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Comprobantes · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    Comprobantes
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+
+        <div>
+
+            <h2 class="text-2xl font-bold">
+                Comprobantes
+            </h2>
+
+            <p class="text-slate-500">
+                Historial de facturación.
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'billing:facturar' %}"
+            class="
+                bg-indigo-600
+                hover:bg-indigo-700
+                text-white
+                px-5
+                py-3
+                rounded-xl
+                font-semibold
+            "
+        >
+            + Nueva factura
+        </a>
+
+    </div>
+
+
+    <div class="card bg-white rounded-2xl p-5 mb-6">
+
+        <form
+            method="get"
+            class="grid grid-cols-1 md:grid-cols-4 gap-3"
+        >
+
+            <input
+                name="buscar"
+                value="{{ buscar }}"
+                placeholder="Buscar cliente..."
+                class="
+                    px-4
+                    py-3
+                    rounded-xl
+                    border
+                    border-slate-200
+                "
+            >
+
+            <select
+                name="tipo"
+                class="
+                    px-4
+                    py-3
+                    rounded-xl
+                    border
+                    border-slate-200
+                    bg-white
+                "
+            >
+
+                <option value="">
+                    Todos los tipos
+                </option>
+
+                {% for value, label in tipos %}
+
+                    <option
+                        value="{{ value }}"
+                        {% if tipo == value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <select
+                name="estado"
+                class="
+                    px-4
+                    py-3
+                    rounded-xl
+                    border
+                    border-slate-200
+                    bg-white
+                "
+            >
+
+                <option value="">
+                    Todos los estados
+                </option>
+
+                {% for value, label in estados %}
+
+                    <option
+                        value="{{ value }}"
+                        {% if estado == value %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ label }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button
+                class="
+                    bg-slate-900
+                    hover:bg-slate-800
+                    text-white
+                    rounded-xl
+                    font-semibold
+                "
+            >
+                Buscar
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <div class="card bg-white rounded-2xl overflow-hidden">
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full">
+
+                <thead class="bg-slate-50">
+
+                    <tr>
+
+                        <th class="text-left p-4 text-xs uppercase text-slate-400">
+                            Comprobante
+                        </th>
+
+                        <th class="text-left p-4 text-xs uppercase text-slate-400">
+                            Cliente
+                        </th>
+
+                        <th class="text-left p-4 text-xs uppercase text-slate-400">
+                            Fecha
+                        </th>
+
+                        <th class="text-right p-4 text-xs uppercase text-slate-400">
+                            Total
+                        </th>
+
+                        <th class="text-right p-4 text-xs uppercase text-slate-400">
+                            Estado
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+
+                    {% for comprobante in comprobantes %}
+
+                        <tr class="hover:bg-slate-50">
+
+                            <td class="p-4">
+
+                                <a
+                                    href="{% url 'billing:comprobante_detalle' comprobante.pk %}"
+                                    class="font-semibold text-indigo-600"
+                                >
+                                    {{ comprobante.tipo }}
+                                    {{ comprobante.punto_venta.numero|stringformat:"04d" }}-{{ comprobante.numero|stringformat:"08d" }}
+                                </a>
+
+                            </td>
+
+                            <td class="p-4">
+                                {{ comprobante.cliente.nombre }}
+                            </td>
+
+                            <td class="p-4 text-sm text-slate-500">
+                                {{ comprobante.fecha|date:"d/m/Y" }}
+                            </td>
+
+                            <td class="p-4 text-right font-semibold">
+                                ${{ comprobante.importe_total|floatformat:2 }}
+                            </td>
+
+                            <td class="p-4 text-right">
+
+                                <span
+                                    class="
+                                        inline-flex
+                                        px-2.5
+                                        py-1
+                                        rounded-lg
+                                        text-xs
+                                        font-semibold
+
+                                        {% if comprobante.estado == 'APROBADO' %}
+                                            bg-emerald-50 text-emerald-700
+                                        {% elif comprobante.estado == 'RECHAZADO' %}
+                                            bg-red-50 text-red-700
+                                        {% elif comprobante.estado == 'BORRADOR' %}
+                                            bg-slate-100 text-slate-600
+                                        {% else %}
+                                            bg-amber-50 text-amber-700
+                                        {% endif %}
+                                    "
+                                >
+                                    {{ comprobante.get_estado_display }}
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+
+                        <tr>
+
+                            <td
+                                colspan="5"
+                                class="p-12 text-center text-slate-400"
+                            >
+                                No hay comprobantes.
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

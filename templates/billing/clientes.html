@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Clientes · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    Clientes
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+
+        <div>
+
+            <h2 class="text-2xl font-bold">
+                Clientes
+            </h2>
+
+            <p class="text-slate-500">
+                Administrá tus clientes y datos fiscales.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="card bg-white rounded-2xl p-5 mb-6">
+
+        <form class="flex gap-3">
+
+            <input
+                name="buscar"
+                value="{{ buscar }}"
+                placeholder="Buscar cliente..."
+                class="
+                    flex-1
+                    px-4
+                    py-3
+                    rounded-xl
+                    border
+                    border-slate-200
+                "
+            >
+
+            <button
+                class="
+                    px-5
+                    rounded-xl
+                    bg-slate-900
+                    text-white
+                    font-semibold
+                "
+            >
+                Buscar
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+
+        {% for cliente in clientes %}
+
+            <a
+                href="{% url 'billing:cliente_detalle' cliente.pk %}"
+                class="
+                    card
+                    bg-white
+                    rounded-2xl
+                    p-5
+                    hover:border-indigo-200
+                    transition
+                "
+            >
+
+                <div class="flex items-start justify-between">
+
+                    <div
+                        class="
+                            w-11
+                            h-11
+                            rounded-xl
+                            bg-indigo-50
+                            text-indigo-600
+                            flex
+                            items-center
+                            justify-center
+                            font-bold
+                        "
+                    >
+                        {{ cliente.nombre|first|upper }}
+                    </div>
+
+                    <span class="text-slate-300">
+                        →
+                    </span>
+
+                </div>
+
+                <div class="font-bold mt-5">
+                    {{ cliente.nombre }}
+                </div>
+
+                {% if cliente.numero_documento %}
+
+                    <div class="text-sm text-slate-500 mt-1">
+                        {{ cliente.tipo_documento }}
+                        {{ cliente.numero_documento }}
+                    </div>
+
+                {% endif %}
+
+                {% if cliente.email %}
+
+                    <div class="text-sm text-slate-400 mt-3">
+                        {{ cliente.email }}
+                    </div>
+
+                {% endif %}
+
+            </a>
+
+        {% empty %}
+
+            <div class="md:col-span-3 card bg-white rounded-2xl p-12 text-center text-slate-400">
+                No hay clientes registrados.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

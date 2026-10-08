@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Puntos de venta · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    Puntos de venta
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto">
+
+    <div class="mb-6">
+
+        <h2 class="text-2xl font-bold">
+            Puntos de venta
+        </h2>
+
+        <p class="text-slate-500">
+            Administrá los puntos utilizados para facturación.
+        </p>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="card bg-white rounded-2xl p-6">
+
+            <h3 class="font-bold">
+                Nuevo punto de venta
+            </h3>
+
+            <form method="post" class="mt-5 space-y-4">
+
+                {% csrf_token %}
+
+                <div>
+
+                    <label class="text-sm font-semibold">
+                        Número
+                    </label>
+
+                    <input
+                        type="number"
+                        name="numero"
+                        min="1"
+                        required
+                        class="
+                            mt-2
+                            w-full
+                            px-4
+                            py-3
+                            rounded-xl
+                            border
+                            border-slate-200
+                        "
+                    >
+
+                </div>
+
+                <div>
+
+                    <label class="text-sm font-semibold">
+                        Nombre
+                    </label>
+
+                    <input
+                        name="nombre"
+                        placeholder="Sucursal principal"
+                        required
+                        class="
+                            mt-2
+                            w-full
+                            px-4
+                            py-3
+                            rounded-xl
+                            border
+                            border-slate-200
+                        "
+                    >
+
+                </div>
+
+                <button
+                    class="
+                        w-full
+                        py-3
+                        rounded-xl
+                        bg-indigo-600
+                        hover:bg-indigo-700
+                        text-white
+                        font-semibold
+                    "
+                >
+                    Crear punto de venta
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <div class="lg:col-span-2 space-y-4">
+
+            {% for punto in puntos %}
+
+                <div class="card bg-white rounded-2xl p-5">
+
+                    <div class="flex items-center justify-between">
+
+                        <div class="flex items-center gap-4">
+
+                            <div
+                                class="
+                                    w-12
+                                    h-12
+                                    rounded-xl
+                                    bg-indigo-50
+                                    text-indigo-700
+                                    flex
+                                    items-center
+                                    justify-center
+                                    font-bold
+                                "
+                            >
+                                {{ punto.numero|stringformat:"04d" }}
+                            </div>
+
+                            <div>
+
+                                <div class="font-bold">
+                                    {{ punto.nombre }}
+                                </div>
+
+                                <div class="text-sm text-slate-400">
+                                    Punto de venta {{ punto.numero|stringformat:"04d" }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div>
+
+                            {% if punto.activo %}
+
+                                <span
+                                    class="
+                                        px-3
+                                        py-1.5
+                                        rounded-lg
+                                        bg-emerald-50
+                                        text-emerald-700
+                                        text-xs
+                                        font-semibold
+                                    "
+                                >
+                                    Activo
+                                </span>
+
+                            {% else %}
+
+                                <span
+                                    class="
+                                        px-3
+                                        py-1.5
+                                        rounded-lg
+                                        bg-slate-100
+                                        text-slate-500
+                                        text-xs
+                                        font-semibold
+                                    "
+                                >
+                                    Inactivo
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% empty %}
+
+                <div class="card bg-white rounded-2xl p-12 text-center text-slate-400">
+                    No hay puntos de venta.
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

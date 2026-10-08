@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}
+    ARCA · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    ARCA
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+
+    <div class="mb-7">
+
+        <h2 class="text-2xl font-bold">
+            Conexión con ARCA
+        </h2>
+
+        <p class="text-slate-500 mt-1">
+            Configurá cómo FacturAR se conecta con ARCA.
+        </p>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <a
+            href="{% url 'arca_gateway:delegacion' %}"
+            class="
+                card
+                bg-white
+                rounded-2xl
+                p-6
+                hover:border-indigo-300
+                transition
+            "
+        >
+
+            <div
+                class="
+                    w-12
+                    h-12
+                    rounded-xl
+                    bg-indigo-50
+                    text-indigo-600
+                    flex
+                    items-center
+                    justify-center
+                    text-xl
+                "
+            >
+                ⚡
+            </div>
+
+            <h3 class="font-bold text-lg mt-5">
+                Delegación ARCA
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Utilizá la conexión administrada por FacturAR
+                para emitir comprobantes.
+            </p>
+
+            <div class="mt-5 text-indigo-600 text-sm font-semibold">
+                Configurar →
+            </div>
+
+        </a>
+
+
+        <div
+            class="
+                card
+                bg-white
+                rounded-2xl
+                p-6
+            "
+        >
+
+            <div
+                class="
+                    w-12
+                    h-12
+                    rounded-xl
+                    bg-slate-100
+                    text-slate-600
+                    flex
+                    items-center
+                    justify-center
+                    text-xl
+                "
+            >
+                🔐
+            </div>
+
+            <h3 class="font-bold text-lg mt-5">
+                Certificado propio
+            </h3>
+
+            <p class="text-sm text-slate-500 mt-2">
+                Soporte preparado para utilizar certificados
+                propios del contribuyente.
+            </p>
+
+            <div
+                class="
+                    mt-5
+                    inline-flex
+                    px-3
+                    py-1.5
+                    rounded-lg
+                    bg-slate-100
+                    text-slate-500
+                    text-xs
+                    font-semibold
+                "
+            >
+                Próximamente
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

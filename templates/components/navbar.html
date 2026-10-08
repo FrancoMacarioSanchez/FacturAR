@@ -1,0 +1,63 @@
+<header class="topbar">
+
+    <div class="topbar-left">
+
+        <button
+            type="button"
+            class="mobile-menu-button"
+            id="mobile-menu-button"
+            aria-label="Abrir menú"
+        >
+            ☰
+        </button>
+
+        <a
+            href="{% url 'billing:dashboard' %}"
+            class="brand"
+        >
+            <span class="brand-icon">
+                F
+            </span>
+
+            <span class="brand-name">
+                FacturAR
+            </span>
+        </a>
+
+    </div>
+
+
+    <div class="topbar-right">
+
+        <button
+            type="button"
+            class="icon-button"
+            aria-label="Notificaciones"
+        >
+            🔔
+        </button>
+
+
+        <div class="user-menu">
+
+            <div class="user-avatar">
+                {{ request.user.first_name|default:"U"|first|upper }}
+            </div>
+
+            <div class="user-info">
+
+                <strong>
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </strong>
+
+                <span>
+                    {{ request.tenant.nombre }}
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>

@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Delegación ARCA · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    Delegación ARCA
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <a
+        href="{% url 'arca_gateway:configuracion' %}"
+        class="text-sm text-slate-500 hover:text-indigo-600"
+    >
+        ← ARCA
+    </a>
+
+
+    <div class="card bg-white rounded-2xl p-6 mt-5">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+
+            <div>
+
+                <div class="text-sm text-slate-400">
+                    Estado de conexión
+                </div>
+
+                <h2 class="text-2xl font-bold mt-1">
+                    Delegación a FacturAR
+                </h2>
+
+            </div>
+
+            <div
+                class="
+                    px-4
+                    py-2
+                    rounded-xl
+                    bg-amber-50
+                    text-amber-700
+                    font-semibold
+                    text-sm
+                "
+            >
+                Pendiente
+            </div>
+
+        </div>
+
+
+        <div class="mt-8 space-y-5">
+
+            <div class="flex gap-4">
+
+                <div
+                    class="
+                        w-9
+                        h-9
+                        rounded-full
+                        bg-indigo-100
+                        text-indigo-600
+                        flex
+                        items-center
+                        justify-center
+                        font-bold
+                        shrink-0
+                    "
+                >
+                    1
+                </div>
+
+                <div>
+
+                    <div class="font-semibold">
+                        Delegar el servicio wsfe
+                    </div>
+
+                    <div class="text-sm text-slate-500 mt-1">
+                        ARCA debe autorizar a FacturAR
+                        para operar el servicio de facturación.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="flex gap-4">
+
+                <div
+                    class="
+                        w-9
+                        h-9
+                        rounded-full
+                        bg-indigo-100
+                        text-indigo-600
+                        flex
+                        items-center
+                        justify-center
+                        font-bold
+                        shrink-0
+                    "
+                >
+                    2
+                </div>
+
+                <div>
+
+                    <div class="font-semibold">
+                        Verificar conexión
+                    </div>
+
+                    <div class="text-sm text-slate-500 mt-1">
+                        FacturAR solicitará un Ticket de Acceso
+                        a ARCA y comprobará el servicio.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="flex gap-4">
+
+                <div
+                    class="
+                        w-9
+                        h-9
+                        rounded-full
+                        bg-indigo-100
+                        text-indigo-600
+                        flex
+                        items-center
+                        justify-center
+                        font-bold
+                        shrink-0
+                    "
+                >
+                    3
+                </div>
+
+                <div>
+
+                    <div class="font-semibold">
+                        Listo para facturar
+                    </div>
+
+                    <div class="text-sm text-slate-500 mt-1">
+                        Una vez validado, podremos conectar
+                        la emisión de comprobantes.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="mt-8 pt-6 border-t">
+
+            <form
+                method="post"
+                action="{% url 'arca_gateway:verificar_delegacion' %}"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    class="
+                        w-full
+                        sm:w-auto
+                        px-6
+                        py-3
+                        rounded-xl
+                        bg-indigo-600
+                        hover:bg-indigo-700
+                        text-white
+                        font-semibold
+                    "
+                >
+                    Verificar conexión con ARCA
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

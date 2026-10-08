@@ -1,0 +1,703 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#4f46e5"
+    >
+
+    <title>
+        {% block title %}
+            FacturAR
+        {% endblock %}
+    </title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: [
+                            "Inter",
+                            "ui-sans-serif",
+                            "system-ui",
+                            "sans-serif"
+                        ]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        body {
+            background: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(255,255,255,.82);
+            backdrop-filter: blur(18px);
+        }
+
+        .sidebar-item {
+            transition: all .18s ease;
+        }
+
+        .sidebar-item:hover {
+            transform: translateX(2px);
+        }
+
+        .card {
+            border: 1px solid #e2e8f0;
+            box-shadow:
+                0 1px 2px rgba(15,23,42,.03),
+                0 8px 30px rgba(15,23,42,.04);
+        }
+
+        .fade-in {
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="text-slate-900">
+
+<div class="min-h-screen flex">
+
+    <!-- SIDEBAR -->
+
+    <aside
+        class="
+            hidden
+            lg:flex
+            lg:flex-col
+            w-64
+            fixed
+            inset-y-0
+            left-0
+            bg-white
+            border-r
+            border-slate-200
+            z-40
+        "
+    >
+
+        <div class="h-20 flex items-center px-6 border-b border-slate-100">
+
+            <a
+                href="{% url 'tenant:dashboard' %}"
+                class="flex items-center gap-3"
+            >
+
+                <div
+                    class="
+                        w-10
+                        h-10
+                        rounded-xl
+                        bg-indigo-600
+                        text-white
+                        flex
+                        items-center
+                        justify-center
+                        font-black
+                        text-lg
+                    "
+                >
+                    F
+                </div>
+
+                <div>
+                    <div class="font-bold text-lg">
+                        FacturAR
+                    </div>
+
+                    <div class="text-xs text-slate-400">
+                        Gestión inteligente
+                    </div>
+                </div>
+
+            </a>
+
+        </div>
+
+        <div class="flex-1 px-4 py-6 space-y-8 overflow-y-auto">
+
+            <div>
+
+                <div
+                    class="
+                        px-3
+                        mb-2
+                        text-[11px]
+                        font-bold
+                        uppercase
+                        tracking-wider
+                        text-slate-400
+                    "
+                >
+                    Principal
+                </div>
+
+                <nav class="space-y-1">
+
+                    <a
+                        href="{% url 'tenant:dashboard' %}"
+                        class="
+                            sidebar-item
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            font-medium
+                            text-slate-600
+                            hover:bg-slate-100
+                        "
+                    >
+                        <span>⌂</span>
+                        Dashboard
+                    </a>
+                    <a href="{% url 'tenant:monotributo' %}"
+   class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="w-5 h-5"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke="currentColor">
+
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+              d="M9 14.25l6-6m-7.5 0h.008v.008H7.5V8.25zm9 7.5h.008v.008H16.5v-.008zM6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"/>
+
+    </svg>
+
+    <span>
+        Monotributo
+    </span>
+
+</a>
+                    <a
+                        href="{% url 'billing:facturar' %}"
+                        class="
+                            sidebar-item
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            font-semibold
+                            text-indigo-600
+                            bg-indigo-50
+                        "
+                    >
+                        <span>＋</span>
+                        Facturar
+                    </a>
+
+                    <a
+                        href="{% url 'billing:comprobantes' %}"
+                        class="
+                            sidebar-item
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            text-slate-600
+                            hover:bg-slate-100
+                        "
+                    >
+                        <span>▤</span>
+                        Comprobantes
+                    </a>
+
+                </nav>
+
+            </div>
+
+            <div>
+
+                <div
+                    class="
+                        px-3
+                        mb-2
+                        text-[11px]
+                        font-bold
+                        uppercase
+                        tracking-wider
+                        text-slate-400
+                    "
+                >
+                    Gestión
+                </div>
+
+                <nav class="space-y-1">
+
+                    <a
+                        href="{% url 'billing:clientes' %}"
+                        class="
+                            sidebar-item
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            text-slate-600
+                            hover:bg-slate-100
+                        "
+                    >
+                        <span>♙</span>
+                        Clientes
+                    </a>
+
+                    <a
+                        href="{% url 'billing:puntos_venta' %}"
+                        class="
+                            sidebar-item
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            text-slate-600
+                            hover:bg-slate-100
+                        "
+                    >
+                        <span>▣</span>
+                        Puntos de venta
+                    </a>
+
+                </nav>
+
+            </div>
+
+            <div>
+
+                <div
+                    class="
+                        px-3
+                        mb-2
+                        text-[11px]
+                        font-bold
+                        uppercase
+                        tracking-wider
+                        text-slate-400
+                    "
+                >
+                    Administración
+                </div>
+
+                <nav class="space-y-1">
+
+                    <a
+                        href="{% url 'arca_gateway:configuracion' %}"
+                        class="
+                            sidebar-item
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            text-slate-600
+                            hover:bg-slate-100
+                        "
+                    >
+                        <span>⚡</span>
+                        ARCA
+                    </a>
+
+                    <a
+                        href="{% url 'tenant:configuracion' %}"
+                        class="
+                            sidebar-item
+                            flex
+                            items-center
+                            gap-3
+                            px-3
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            text-slate-600
+                            hover:bg-slate-100
+                        "
+                    >
+                        <span>⚙</span>
+                        Configuración
+                    </a>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+        <div class="p-4 border-t border-slate-100">
+
+            <div class="flex items-center gap-3 mb-3">
+
+                <div
+                    class="
+                        w-9
+                        h-9
+                        rounded-full
+                        bg-indigo-100
+                        text-indigo-700
+                        flex
+                        items-center
+                        justify-center
+                        font-bold
+                    "
+                >
+                    {{ request.user.username|first|upper }}
+                </div>
+
+                <div class="min-w-0">
+
+                    <div class="text-sm font-semibold truncate">
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    </div>
+
+                    <div class="text-xs text-slate-400 truncate">
+                        {{ request.tenant.nombre }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+
+                <button
+                    class="
+                        w-full
+                        text-left
+                        text-sm
+                        text-slate-500
+                        hover:text-red-600
+                        px-3
+                        py-2
+                        rounded-lg
+                        hover:bg-red-50
+                    "
+                >
+                    Cerrar sesión
+                </button>
+
+            </form>
+
+        </div>
+
+    </aside>
+
+
+    <!-- CONTENIDO -->
+
+    <main class="lg:ml-64 flex-1 min-w-0">
+
+        <!-- TOPBAR -->
+
+        <header
+            class="
+                h-20
+                bg-white
+                border-b
+                border-slate-200
+                sticky
+                top-0
+                z-30
+            "
+        >
+
+            <div
+                class="
+                    h-full
+                    px-4
+                    sm:px-6
+                    lg:px-8
+                    flex
+                    items-center
+                    justify-between
+                "
+            >
+
+                <div>
+                    <div class="text-xs text-slate-400">
+                        {{ request.tenant.razon_social }}
+                    </div>
+
+                    <h1 class="font-bold text-lg">
+                        {% block page_title %}
+                            FacturAR
+                        {% endblock %}
+                    </h1>
+                </div>
+
+                <div class="flex items-center gap-3">
+
+                    <div
+                        class="
+                            hidden
+                            sm:flex
+                            items-center
+                            gap-2
+                            px-3
+                            py-2
+                            rounded-xl
+                            bg-emerald-50
+                            text-emerald-700
+                            text-xs
+                            font-semibold
+                        "
+                    >
+                        <span
+                            class="
+                                w-2
+                                h-2
+                                rounded-full
+                                bg-emerald-500
+                            "
+                        ></span>
+
+                        Sistema operativo
+                    </div>
+
+                    <a
+                        href="{% url 'billing:facturar' %}"
+                        class="
+                            hidden
+                            sm:flex
+                            items-center
+                            gap-2
+                            bg-indigo-600
+                            hover:bg-indigo-700
+                            text-white
+                            px-4
+                            py-2.5
+                            rounded-xl
+                            text-sm
+                            font-semibold
+                            transition
+                        "
+                    >
+                        + Facturar
+                    </a>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- PAGE -->
+
+        <div class="p-4 sm:p-6 lg:p-8 pb-28 lg:pb-8 fade-in">
+
+            {% if messages %}
+
+                <div class="space-y-2 mb-6">
+
+                    {% for message in messages %}
+
+                        <div
+                            class="
+                                rounded-xl
+                                px-4
+                                py-3
+                                text-sm
+                                font-medium
+                                {% if message.tags == 'error' %}
+                                    bg-red-50 text-red-700
+                                {% elif message.tags == 'success' %}
+                                    bg-emerald-50 text-emerald-700
+                                {% else %}
+                                    bg-blue-50 text-blue-700
+                                {% endif %}
+                            "
+                        >
+                            {{ message }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- MOBILE NAV -->
+
+<nav
+    class="
+        lg:hidden
+        fixed
+        bottom-0
+        inset-x-0
+        bg-white
+        border-t
+        border-slate-200
+        z-50
+    "
+>
+
+    <div class="grid grid-cols-5 h-16">
+
+        <a
+            href="{% url 'tenant:dashboard' %}"
+            class="
+                flex
+                flex-col
+                items-center
+                justify-center
+                text-xs
+                text-slate-500
+                gap-1
+            "
+        >
+            <span class="text-lg">⌂</span>
+            Inicio
+        </a>
+
+        <a
+            href="{% url 'billing:comprobantes' %}"
+            class="
+                flex
+                flex-col
+                items-center
+                justify-center
+                text-xs
+                text-slate-500
+                gap-1
+            "
+        >
+            <span class="text-lg">▤</span>
+            Ventas
+        </a>
+
+        <a
+            href="{% url 'billing:facturar' %}"
+            class="
+                flex
+                flex-col
+                items-center
+                justify-center
+                gap-1
+            "
+        >
+            <span
+                class="
+                    w-11
+                    h-11
+                    -mt-7
+                    rounded-full
+                    bg-indigo-600
+                    text-white
+                    shadow-lg
+                    flex
+                    items-center
+                    justify-center
+                    text-2xl
+                "
+            >
+                +
+            </span>
+            <span class="text-[11px] font-semibold text-indigo-600">
+                Facturar
+            </span>
+        </a>
+
+        <a
+            href="{% url 'billing:clientes' %}"
+            class="
+                flex
+                flex-col
+                items-center
+                justify-center
+                text-xs
+                text-slate-500
+                gap-1
+            "
+        >
+            <span class="text-lg">♙</span>
+            Clientes
+        </a>
+
+        <a
+            href="{% url 'arca_gateway:configuracion' %}"
+            class="
+                flex
+                flex-col
+                items-center
+                justify-center
+                text-xs
+                text-slate-500
+                gap-1
+            "
+        >
+            <span class="text-lg">⚙</span>
+            Más
+        </a>
+
+    </div>
+
+</nav>
+
+{% block extra_js %}
+{% endblock %}
+
+</body>
+</html>

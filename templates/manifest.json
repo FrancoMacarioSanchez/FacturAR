@@ -1,0 +1,21 @@
+{
+    "name": "CoreX POS y Facturación",
+    "short_name": "CoreX",
+    "description": "Sistema de facturación en punto de venta",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f9fafb",
+    "theme_color": "#2563eb",
+    "icons": [
+        {
+            "src": "/static/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Resumen · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    Resumen
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+
+        <div>
+
+            <h2 class="text-2xl font-bold">
+                Resumen de facturación
+            </h2>
+
+            <p class="text-slate-500 mt-1">
+                {{ hoy|date:"d/m/Y" }}
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'billing:facturar' %}"
+            class="
+                inline-flex
+                items-center
+                justify-center
+                bg-indigo-600
+                hover:bg-indigo-700
+                text-white
+                px-5
+                py-3
+                rounded-xl
+                font-semibold
+            "
+        >
+            + Nueva factura
+        </a>
+
+    </div>
+
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+
+        <div class="card bg-white rounded-2xl p-6">
+
+            <div class="text-sm text-slate-500">
+                Facturado hoy
+            </div>
+
+            <div class="text-3xl font-bold mt-2">
+                ${{ facturado_hoy|floatformat:2 }}
+            </div>
+
+        </div>
+
+        <div class="card bg-white rounded-2xl p-6">
+
+            <div class="text-sm text-slate-500">
+                Facturado este mes
+            </div>
+
+            <div class="text-3xl font-bold mt-2">
+                ${{ facturado_mes|floatformat:2 }}
+            </div>
+
+        </div>
+
+        <div class="card bg-white rounded-2xl p-6">
+
+            <div class="text-sm text-slate-500">
+                Comprobantes del mes
+            </div>
+
+            <div class="text-3xl font-bold mt-2">
+                {{ comprobantes_mes }}
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card bg-white rounded-2xl overflow-hidden">
+
+        <div class="p-6 border-b border-slate-100">
+
+            <h3 class="font-bold">
+                Últimos comprobantes
+            </h3>
+
+        </div>
+
+        {% if ultimos_comprobantes %}
+
+            <div class="divide-y divide-slate-100">
+
+                {% for comprobante in ultimos_comprobantes %}
+
+                    <a
+                        href="{% url 'billing:comprobante_detalle' comprobante.pk %}"
+                        class="
+                            block
+                            p-5
+                            hover:bg-slate-50
+                            transition
+                        "
+                    >
+
+                        <div class="flex items-center justify-between gap-4">
+
+                            <div>
+
+                                <div class="font-semibold">
+                                    {{ comprobante.tipo }}
+                                    {{ comprobante.punto_venta.numero|stringformat:"04d" }}-{{ comprobante.numero|stringformat:"08d" }}
+                                </div>
+
+                                <div class="text-sm text-slate-400 mt-1">
+                                    {{ comprobante.cliente.nombre }}
+                                </div>
+
+                            </div>
+
+                            <div class="text-right">
+
+                                <div class="font-bold">
+                                    ${{ comprobante.importe_total|floatformat:2 }}
+                                </div>
+
+                                <div class="text-xs mt-1">
+                                    {{ comprobante.get_estado_display }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="p-12 text-center text-slate-400">
+                Todavía no hay comprobantes.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

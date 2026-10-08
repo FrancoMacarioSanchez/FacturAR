@@ -1,0 +1,730 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Nueva factura · FacturAR
+{% endblock %}
+
+{% block page_title %}
+    Nueva factura
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+<form
+    method="post"
+    id="factura-form"
+>
+
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <div class="xl:col-span-2 space-y-6">
+
+            <!-- DATOS -->
+
+            <section class="card bg-white rounded-2xl p-6">
+
+                <div class="flex items-center justify-between mb-6">
+
+                    <div>
+
+                        <h2 class="font-bold text-lg">
+                            Datos del comprobante
+                        </h2>
+
+                        <p class="text-sm text-slate-400">
+                            Información básica de la factura
+                        </p>
+
+                    </div>
+
+                    <span
+                        class="
+                            px-3
+                            py-1.5
+                            rounded-lg
+                            bg-indigo-50
+                            text-indigo-700
+                            text-sm
+                            font-bold
+                        "
+                    >
+                        Borrador
+                    </span>
+
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <div>
+
+                        <label class="text-sm font-semibold">
+                            Tipo
+                        </label>
+
+                        <select
+                            name="tipo"
+                            id="tipo"
+                            class="
+                                mt-2
+                                w-full
+                                px-4
+                                py-3
+                                rounded-xl
+                                border
+                                border-slate-200
+                                bg-white
+                            "
+                        >
+
+                            <option value="FA">
+                                Factura A
+                            </option>
+
+                            <option value="FB">
+                                Factura B
+                            </option>
+
+                            <option value="FC" selected>
+                                Factura C
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="text-sm font-semibold">
+                            Punto de venta
+                        </label>
+
+                        <select
+                            name="punto_venta"
+                            required
+                            class="
+                                mt-2
+                                w-full
+                                px-4
+                                py-3
+                                rounded-xl
+                                border
+                                border-slate-200
+                                bg-white
+                            "
+                        >
+
+                            {% for punto in puntos_venta %}
+
+                                <option value="{{ punto.id }}">
+                                    {{ punto.numero|stringformat:"04d" }}
+                                    ·
+                                    {{ punto.nombre }}
+                                </option>
+
+                            {% empty %}
+
+                                <option>
+                                    No hay puntos de venta
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="text-sm font-semibold">
+                            Fecha
+                        </label>
+
+                        <input
+                            type="date"
+                            name="fecha"
+                            value="{{ hoy|date:'Y-m-d' }}"
+                            required
+                            class="
+                                mt-2
+                                w-full
+                                px-4
+                                py-3
+                                rounded-xl
+                                border
+                                border-slate-200
+                            "
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="mt-5">
+
+                    <label class="text-sm font-semibold">
+                        Cliente
+                    </label>
+
+                    <select
+                        name="cliente"
+                        required
+                        class="
+                            mt-2
+                            w-full
+                            px-4
+                            py-3
+                            rounded-xl
+                            border
+                            border-slate-200
+                            bg-white
+                        "
+                    >
+
+                        <option value="">
+                            Seleccionar cliente...
+                        </option>
+
+                        {% for cliente in clientes %}
+
+                            <option value="{{ cliente.id }}">
+                                {{ cliente.nombre }}
+
+                                {% if cliente.numero_documento %}
+                                    · {{ cliente.numero_documento }}
+                                {% endif %}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+            </section>
+
+
+            <!-- PRODUCTOS -->
+
+            <section class="card bg-white rounded-2xl p-6">
+
+                <div class="flex items-center justify-between mb-5">
+
+                    <div>
+
+                        <h2 class="font-bold text-lg">
+                            Productos
+                        </h2>
+
+                        <p class="text-sm text-slate-400">
+                            Agregá los productos del comprobante.
+                        </p>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="agregarItem()"
+                        class="
+                            px-4
+                            py-2.5
+                            rounded-xl
+                            bg-slate-100
+                            hover:bg-slate-200
+                            text-sm
+                            font-semibold
+                        "
+                    >
+                        + Agregar
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="items-container"
+                    class="space-y-3"
+                >
+
+                    <div
+                        class="item-row grid grid-cols-12 gap-3"
+                    >
+
+                        <div class="col-span-12 md:col-span-5">
+
+                            <input
+                                name="descripcion[]"
+                                placeholder="Descripción"
+                                required
+                                class="
+                                    w-full
+                                    px-4
+                                    py-3
+                                    rounded-xl
+                                    border
+                                    border-slate-200
+                                "
+                            >
+
+                        </div>
+
+                        <div class="col-span-4 md:col-span-2">
+
+                            <input
+                                name="cantidad[]"
+                                type="number"
+                                step="0.001"
+                                min="0.001"
+                                value="1"
+                                required
+                                oninput="calcularTotales()"
+                                class="
+                                    w-full
+                                    px-4
+                                    py-3
+                                    rounded-xl
+                                    border
+                                    border-slate-200
+                                "
+                            >
+
+                        </div>
+
+                        <div class="col-span-4 md:col-span-2">
+
+                            <input
+                                name="precio[]"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value="0"
+                                required
+                                oninput="calcularTotales()"
+                                class="
+                                    w-full
+                                    px-4
+                                    py-3
+                                    rounded-xl
+                                    border
+                                    border-slate-200
+                                "
+                            >
+
+                        </div>
+
+                        <div class="col-span-3 md:col-span-2">
+
+                            <select
+                                name="alicuota_iva[]"
+                                onchange="calcularTotales()"
+                                class="
+                                    w-full
+                                    px-3
+                                    py-3
+                                    rounded-xl
+                                    border
+                                    border-slate-200
+                                    bg-white
+                                "
+                            >
+
+                                <option value="0">
+                                    IVA 0%
+                                </option>
+
+                                <option value="10.5">
+                                    IVA 10,5%
+                                </option>
+
+                                <option value="21" selected>
+                                    IVA 21%
+                                </option>
+
+                                <option value="27">
+                                    IVA 27%
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-span-1 flex items-center justify-center">
+
+                            <button
+                                type="button"
+                                onclick="eliminarItem(this)"
+                                class="
+                                    text-slate-400
+                                    hover:text-red-600
+                                    text-xl
+                                "
+                            >
+                                ×
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+        <!-- RESUMEN -->
+
+        <aside>
+
+            <div
+                class="
+                    card
+                    bg-white
+                    rounded-2xl
+                    p-6
+                    sticky
+                    top-28
+                "
+            >
+
+                <h2 class="font-bold text-lg">
+                    Resumen
+                </h2>
+
+                <div class="space-y-4 mt-6">
+
+                    <div class="flex justify-between text-sm">
+
+                        <span class="text-slate-500">
+                            Neto
+                        </span>
+
+                        <span
+                            id="resumen-neto"
+                            class="font-semibold"
+                        >
+                            $0,00
+                        </span>
+
+                    </div>
+
+                    <div class="flex justify-between text-sm">
+
+                        <span class="text-slate-500">
+                            IVA
+                        </span>
+
+                        <span
+                            id="resumen-iva"
+                            class="font-semibold"
+                        >
+                            $0,00
+                        </span>
+
+                    </div>
+
+                    <div
+                        class="
+                            border-t
+                            border-slate-100
+                            pt-5
+                            flex
+                            justify-between
+                            items-end
+                        "
+                    >
+
+                        <span class="font-semibold">
+                            Total
+                        </span>
+
+                        <span
+                            id="resumen-total"
+                            class="
+                                text-3xl
+                                font-black
+                                text-indigo-600
+                            "
+                        >
+                            $0,00
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="mt-7 space-y-3">
+
+                    <button
+                        type="submit"
+                        class="
+                            w-full
+                            bg-slate-900
+                            hover:bg-slate-800
+                            text-white
+                            py-3.5
+                            rounded-xl
+                            font-semibold
+                        "
+                    >
+                        Guardar borrador
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="confirmarEmision()"
+                        class="
+                            w-full
+                            bg-indigo-600
+                            hover:bg-indigo-700
+                            text-white
+                            py-3.5
+                            rounded-xl
+                            font-semibold
+                        "
+                    >
+                        Emitir comprobante →
+                    </button>
+
+                </div>
+
+                <div
+                    class="
+                        mt-5
+                        p-4
+                        rounded-xl
+                        bg-amber-50
+                        text-amber-700
+                        text-xs
+                    "
+                >
+                    La emisión real contra ARCA se conectará
+                    en la siguiente etapa.
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</form>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+function dinero(valor) {
+    return valor.toLocaleString(
+        "es-AR",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+
+function calcularTotales() {
+
+    const filas = document.querySelectorAll(
+        ".item-row"
+    );
+
+    let total = 0;
+    let neto = 0;
+    let iva = 0;
+
+    filas.forEach(fila => {
+
+        const cantidad = parseFloat(
+            fila.querySelector(
+                '[name="cantidad[]"]'
+            )?.value || 0
+        );
+
+        const precio = parseFloat(
+            fila.querySelector(
+                '[name="precio[]"]'
+            )?.value || 0
+        );
+
+        const alicuota = parseFloat(
+            fila.querySelector(
+                '[name="alicuota_iva[]"]'
+            )?.value || 0
+        );
+
+        const importe = cantidad * precio;
+
+        if (alicuota > 0) {
+
+            const netoLinea =
+                importe /
+                (1 + alicuota / 100);
+
+            const ivaLinea =
+                importe - netoLinea;
+
+            neto += netoLinea;
+            iva += ivaLinea;
+
+        } else {
+
+            neto += importe;
+
+        }
+
+        total += importe;
+
+    });
+
+    document.getElementById(
+        "resumen-neto"
+    ).textContent =
+        "$" + dinero(neto);
+
+    document.getElementById(
+        "resumen-iva"
+    ).textContent =
+        "$" + dinero(iva);
+
+    document.getElementById(
+        "resumen-total"
+    ).textContent =
+        "$" + dinero(total);
+}
+
+
+function agregarItem() {
+
+    const container =
+        document.getElementById(
+            "items-container"
+        );
+
+    const fila = document.createElement(
+        "div"
+    );
+
+    fila.className =
+        "item-row grid grid-cols-12 gap-3";
+
+    fila.innerHTML = `
+        <div class="col-span-12 md:col-span-5">
+            <input
+                name="descripcion[]"
+                placeholder="Descripción"
+                required
+                class="w-full px-4 py-3 rounded-xl border border-slate-200"
+            >
+        </div>
+
+        <div class="col-span-4 md:col-span-2">
+            <input
+                name="cantidad[]"
+                type="number"
+                step="0.001"
+                min="0.001"
+                value="1"
+                required
+                oninput="calcularTotales()"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200"
+            >
+        </div>
+
+        <div class="col-span-4 md:col-span-2">
+            <input
+                name="precio[]"
+                type="number"
+                step="0.01"
+                min="0"
+                value="0"
+                required
+                oninput="calcularTotales()"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200"
+            >
+        </div>
+
+        <div class="col-span-3 md:col-span-2">
+            <select
+                name="alicuota_iva[]"
+                onchange="calcularTotales()"
+                class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white"
+            >
+                <option value="0">IVA 0%</option>
+                <option value="10.5">IVA 10,5%</option>
+                <option value="21" selected>IVA 21%</option>
+                <option value="27">IVA 27%</option>
+            </select>
+        </div>
+
+        <div class="col-span-1 flex items-center justify-center">
+            <button
+                type="button"
+                onclick="eliminarItem(this)"
+                class="text-slate-400 hover:text-red-600 text-xl"
+            >
+                ×
+            </button>
+        </div>
+    `;
+
+    container.appendChild(fila);
+
+    calcularTotales();
+}
+
+
+function eliminarItem(button) {
+
+    const filas =
+        document.querySelectorAll(
+            ".item-row"
+        );
+
+    if (filas.length <= 1) {
+        return;
+    }
+
+    button
+        .closest(".item-row")
+        .remove();
+
+    calcularTotales();
+}
+
+
+function confirmarEmision() {
+
+    const confirmado = confirm(
+        "¿Querés emitir este comprobante?"
+    );
+
+    if (!confirmado) {
+        return;
+    }
+
+    alert(
+        "La conexión con ARCA se activará en la siguiente etapa."
+    );
+}
+
+
+calcularTotales();
+
+</script>
+
+{% endblock %}

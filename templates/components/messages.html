@@ -1,0 +1,29 @@
+{% if messages %}
+
+    <div class="messages">
+
+        {% for message in messages %}
+
+            <div
+                class="message message-{{ message.tags }}"
+            >
+
+                <span>
+                    {{ message }}
+                </span>
+
+                <button
+                    type="button"
+                    class="message-close"
+                    onclick="this.parentElement.remove()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+{% endif %}

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Ingresar · FacturAR</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="min-h-screen bg-slate-950">
+
+<div class="min-h-screen flex items-center justify-center p-6">
+
+    <div class="w-full max-w-md">
+
+        <div class="text-center mb-8">
+
+            <div
+                class="
+                    inline-flex
+                    w-14
+                    h-14
+                    rounded-2xl
+                    bg-indigo-600
+                    text-white
+                    items-center
+                    justify-center
+                    text-2xl
+                    font-black
+                    mb-4
+                "
+            >
+                F
+            </div>
+
+            <h1 class="text-2xl font-bold text-white">
+                FacturAR
+            </h1>
+
+            <p class="text-slate-400 mt-2">
+                Ingresá a tu cuenta
+            </p>
+
+        </div>
+
+        <div
+            class="
+                bg-white
+                rounded-3xl
+                shadow-2xl
+                p-7
+            "
+        >
+
+            {% if form.errors %}
+
+                <div
+                    class="
+                        mb-5
+                        p-4
+                        rounded-xl
+                        bg-red-50
+                        text-red-700
+                        text-sm
+                    "
+                >
+                    Usuario o contraseña incorrectos.
+                </div>
+
+            {% endif %}
+
+            <form method="post" class="space-y-5">
+
+                {% csrf_token %}
+
+                <div>
+
+                    <label class="block text-sm font-semibold mb-2">
+                        Usuario
+                    </label>
+
+                    <input
+                        type="text"
+                        name="username"
+                        autocomplete="username"
+                        required
+                        autofocus
+                        class="
+                            w-full
+                            px-4
+                            py-3
+                            rounded-xl
+                            border
+                            border-slate-200
+                            outline-none
+                            focus:ring-2
+                            focus:ring-indigo-500
+                        "
+                    >
+
+                </div>
+
+                <div>
+
+                    <label class="block text-sm font-semibold mb-2">
+                        Contraseña
+                    </label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        autocomplete="current-password"
+                        required
+                        class="
+                            w-full
+                            px-4
+                            py-3
+                            rounded-xl
+                            border
+                            border-slate-200
+                            outline-none
+                            focus:ring-2
+                            focus:ring-indigo-500
+                        "
+                    >
+
+                </div>
+
+                <button
+                    class="
+                        w-full
+                        bg-indigo-600
+                        hover:bg-indigo-700
+                        text-white
+                        py-3
+                        rounded-xl
+                        font-semibold
+                        transition
+                    "
+                >
+                    Ingresar
+                </button>
+
+            </form>
+
+        </div>
+
+        <p class="text-center text-xs text-slate-500 mt-6">
+            FacturAR · Gestión de comprobantes
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>
