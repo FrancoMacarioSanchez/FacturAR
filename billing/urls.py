@@ -48,4 +48,11 @@ urlpatterns = [
         views.puntos_venta,
         name="puntos_venta",
     ),
+
+    path(
+        "comprobantes/<int:pk>/emitir-en-arca/",
+        views.emitir_en_arca,
+        name="emitir_en_arca",
+    ),
+
 ]

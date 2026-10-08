@@ -810,3 +810,40 @@ def puntos_venta(request):
             "puntos": puntos,
         },
     )
+    
+
+@login_required
+def emitir_en_arca(request, pk):
+    if request.method != "POST":
+        return redirect(
+            "billing:comprobante_detalle",
+            pk=pk,
+        )
+
+    comprobante = get_object_or_404(
+        Comprobante.objects
+        .select_related("cliente", "punto_venta")
+        .prefetch_related("items"),
+        pk=pk,
+    )
+
+    try:
+        from arca_gateway.views import emitir_factura_wsfe
+
+        emitir_factura_wsfe(comprobante)
+
+        messages.success(
+            request,
+            f"Factura autorizada por ARCA. CAE: {comprobante.cae}",
+        )
+
+    except Exception as exc:
+        messages.error(
+            request,
+            f"No se pudo emitir el comprobante: {exc}",
+        )
+
+    return redirect(
+        "billing:comprobante_detalle",
+        pk=comprobante.pk,
+    )
