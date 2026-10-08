@@ -577,6 +577,7 @@ def delegacion(request):
 # =========================================================
 
 
+
 @login_required
 def verificar_delegacion(request):
     configuracion = (
@@ -605,18 +606,14 @@ def verificar_delegacion(request):
 
             if delegacion:
                 delegacion.ultima_verificacion = timezone.now()
+                delegacion.mensaje = (
+                    "Autenticación WSAA correcta. "
+                    "La autorización de WSFE debe verificarse "
+                    "por separado."
+                )
 
-                # Obtener un token no prueba que la delegación
-                # esté autorizada en ARCA.
                 if delegacion.estado != "ACTIVA":
                     delegacion.estado = "PENDIENTE"
-
-                delegacion.mensaje = (
-                    "La autenticación WSAA fue correcta. "
-                    "Esto no confirma por sí solo que la delegación "
-                    "esté autorizada. Verificá la autorización del "
-                    "servicio WSFE en ARCA antes de emitir."
-                )
 
                 delegacion.save(
                     update_fields=[
@@ -629,9 +626,8 @@ def verificar_delegacion(request):
 
             messages.success(
                 request,
-                "La autenticación con WSAA funcionó. "
-                "Todavía hay que verificar la autorización "
-                "de la delegación para emitir comprobantes."
+                "WSAA respondió correctamente. "
+                "Esto no confirma por sí solo la autorización de WSFE."
             )
 
             return render(
@@ -649,7 +645,6 @@ def verificar_delegacion(request):
                 delegacion.estado = "ERROR"
                 delegacion.ultima_verificacion = timezone.now()
                 delegacion.mensaje = str(exc)
-
                 delegacion.save(
                     update_fields=[
                         "estado",
@@ -963,6 +958,7 @@ def emitir_factura_wsfe(comprobante):
 
     # El CUIT usado en Auth debe corresponder al titular
     # del certificado que firmó el acceso WSAA.
+    
     if configuracion.metodo == "DELEGACION":
         try:
             delegacion_configurada = configuracion.delegacion
@@ -976,28 +972,29 @@ def emitir_factura_wsfe(comprobante):
 
         if delegacion_configurada.estado != "ACTIVA":
             raise RuntimeError(
-                "La delegación no está activa."
+                "La delegación no está activa. Verificá la autorización "
+                "de WSFE antes de emitir."
             )
 
+        # CUIT del contribuyente representado ante ARCA.
         cuit_emisor = str(
+            delegacion_configurada.cuit_cliente or ""
+        ).strip()
+
+        # La CUIT del titular del certificado debe ser FacturAR.
+        cuit_titular_certificado = str(
             delegacion_configurada.cuit_facturar or ""
         ).strip()
 
-        if not cuit_emisor:
+        if cuit_titular_certificado != str(ARCA_CUIT_FACTURAR):
             raise RuntimeError(
-                "Falta configurar la CUIT emisora de FacturAR en la "
-                "delegación. Debe ser la CUIT titular del certificado "
-                "y estar autorizada para utilizar WSFE."
+                "La CUIT titular del certificado no coincide con "
+                "la CUIT configurada para FacturAR."
             )
     else:
         cuit_emisor = str(
             comprobante.cuit_emisor or ""
         ).strip()
-
-    if not cuit_emisor.isdigit() or len(cuit_emisor) != 11:
-        raise RuntimeError(
-            "El CUIT emisor debe tener 11 dígitos."
-        )
 
     tipo_arca = TIPOS_COMPROBANTE_ARCA[comprobante.tipo]
 
@@ -1346,3 +1343,79 @@ def emitir_factura_wsfe(comprobante):
         "ARCA no autorizó el comprobante. "
         + (detalle_error or "La respuesta no incluyó un CAE autorizado.")
     )
+    
+
+def consultar_comprobante_wsfe(
+    token,
+    cuit,
+    punto_venta,
+    tipo_comprobante,
+    numero_comprobante,
+    ambiente="HOMOLOGACION",
+):
+    soap_body = f"""<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:ar="http://ar.gov.afip.dif.FEV1/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <ar:FECompConsultar>
+            <ar:Auth>
+                <ar:Token>{token.token}</ar:Token>
+                <ar:Sign>{token.sign}</ar:Sign>
+                <ar:Cuit>{cuit}</ar:Cuit>
+            </ar:Auth>
+            <ar:FeCompConsReq>
+                <ar:CbteTipo>{tipo_comprobante}</ar:CbteTipo>
+                <ar:CbteNro>{numero_comprobante}</ar:CbteNro>
+                <ar:PtoVta>{punto_venta}</ar:PtoVta>
+            </ar:FeCompConsReq>
+        </ar:FECompConsultar>
+    </soapenv:Body>
+</soapenv:Envelope>
+"""
+
+    respuesta = solicitar_wsfe(
+        soap_body,
+        ambiente=ambiente,
+        soap_action=(
+            "http://ar.gov.afip.dif.FEV1/FECompConsultar"
+        ),
+    )
+
+    try:
+        root = ET.fromstring(respuesta)
+    except ET.ParseError as exc:
+        raise RuntimeError(
+            "WSFE devolvió una respuesta XML inválida al consultar "
+            "el comprobante."
+        ) from exc
+
+    def nombre_local(tag):
+        return tag.split("}", 1)[-1].split(":", 1)[-1]
+
+    resultado = {}
+
+    for elemento in root.iter():
+        nombre = nombre_local(elemento.tag)
+
+        if nombre in (
+            "Resultado",
+            "CodAutorizacion",
+            "EmisionTipo",
+            "FchVto",
+            "CbteFch",
+            "ImpTotal",
+            "PtoVta",
+            "CbteTipo",
+            "CbteDesde",
+            "CbteHasta",
+        ):
+            resultado[nombre] = (elemento.text or "").strip()
+
+    if not resultado:
+        raise RuntimeError(
+            "WSFE no devolvió los datos del comprobante consultado."
+        )
+
+    return resultado
