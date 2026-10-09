@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
-
+from billing import views as billing_views
 urlpatterns = [
     path("admin/", admin.site.urls),
 
@@ -23,4 +23,5 @@ urlpatterns = [
     path("billing/", include("billing.urls")),
     path("arca/", include("arca_gateway.urls")),
     path("api/v1/", include("api.urls")),
+    path("", billing_views.dashboard, name="dashboard"),
 ]

@@ -3,7 +3,11 @@ Django settings for FacturAR project.
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
+# Carga las variables del archivo .env al entorno de Python
+load_dotenv()
 
 # =========================================================
 # PATHS
@@ -22,9 +26,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-ARCA_CUIT_FACTURAR=20446699696
-ARCA_CERT_PATH= 'C:\FacturAR\secrets\facturar.crt'
-ARCA_KEY_PATH= 'C:\FacturAR\secrets\facturar.key'
+ARCA_CUIT_FACTURAR=os.getenv('ARCA_CUIT_FACTURAR')
+ARCA_CERT_PATH=os.getenv('ARCA_CERT_PATH')
+ARCA_KEY_PATH=os.getenv('ARCA_KEY_PATH')
 
 
 # =========================================================

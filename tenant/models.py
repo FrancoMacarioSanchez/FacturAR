@@ -1,52 +1,24 @@
 from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 
-
 class MonotributoCategoria(models.Model):
     categoria = models.CharField(
         max_length=1,
         unique=True,
         choices=[
-            ("A", "Categoría A"),
-            ("B", "Categoría B"),
-            ("C", "Categoría C"),
-            ("D", "Categoría D"),
-            ("E", "Categoría E"),
-            ("F", "Categoría F"),
-            ("G", "Categoría G"),
-            ("H", "Categoría H"),
-            ("I", "Categoría I"),
-            ("J", "Categoría J"),
-            ("K", "Categoría K"),
+            ("A", "Categoría A"), ("B", "Categoría B"), ("C", "Categoría C"),
+            ("D", "Categoría D"), ("E", "Categoría E"), ("F", "Categoría F"),
+            ("G", "Categoría G"), ("H", "Categoría H"), ("I", "Categoría I"),
+            ("J", "Categoría J"), ("K", "Categoría K"),
         ],
     )
-
-    ingresos_brutos_anuales = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-    )
-
-    superficie_maxima_m2 = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-    )
-
+    ingresos_brutos_anuales = models.DecimalField(max_digits=15, decimal_places=2)
+    superficie_maxima_m2 = models.DecimalField(max_digits=10, decimal_places=2)
     energia_maxima_kw = models.PositiveIntegerField()
-
-    alquileres_maximos_anuales = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-    )
-
-    precio_unitario_maximo = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-    )
-
+    alquileres_maximos_anuales = models.DecimalField(max_digits=15, decimal_places=2)
+    precio_unitario_maximo = models.DecimalField(max_digits=15, decimal_places=2)
     vigente_desde = models.DateField()
-
     activo = models.BooleanField(default=True)
-
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
@@ -68,38 +40,15 @@ class MonotributoCategoria(models.Model):
 
 
 class Tenant(TenantMixin):
-
     nombre = models.CharField(max_length=150)
-
     razon_social = models.CharField(max_length=200)
-
-    cuit = models.CharField(
-        max_length=20,
-        unique=True,
-    )
-
+    cuit = models.CharField(max_length=20, unique=True)
     email = models.EmailField()
-
-    telefono = models.CharField(
-        max_length=50,
-        blank=True,
-    )
-
-    direccion = models.CharField(
-        max_length=255,
-        blank=True,
-    )
-
-    localidad = models.CharField(
-        max_length=100,
-        blank=True,
-    )
-
-    provincia = models.CharField(
-        max_length=100,
-        blank=True,
-    )
-
+    telefono = models.CharField(max_length=50, blank=True)
+    direccion = models.CharField(max_length=255, blank=True)
+    localidad = models.CharField(max_length=100, blank=True)
+    provincia = models.CharField(max_length=100, blank=True)
+    
     condicion_fiscal = models.CharField(
         max_length=50,
         choices=[
@@ -110,34 +59,19 @@ class Tenant(TenantMixin):
         ],
     )
 
-    categoria_monotributo = models.CharField(
-        max_length=1,
-        choices=[
-            ("A", "A"),
-            ("B", "B"),
-            ("C", "C"),
-            ("D", "D"),
-            ("E", "E"),
-            ("F", "F"),
-            ("G", "G"),
-            ("H", "H"),
-            ("I", "I"),
-            ("J", "J"),
-            ("K", "K"),
-        ],
+    # ---> CAMBIO APLICADO AQUÍ <---
+    categoria_monotributo = models.ForeignKey(
+        MonotributoCategoria,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
+        related_name="tenants",
+        verbose_name="Categoría de Monotributo"
     )
 
     activo = models.BooleanField(default=True)
-
-    creado = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-    actualizado = models.DateTimeField(
-        auto_now=True,
-    )
-
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
     auto_create_schema = True
 
     def __str__(self):

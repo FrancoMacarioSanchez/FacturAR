@@ -55,4 +55,10 @@ urlpatterns = [
         name="emitir_en_arca",
     ),
 
+    path(
+        "comprobantes/<int:pk>/verificar-en-arca/",
+        views.verificar_comprobante_arca,
+        name="verificar_comprobante_arca",
+    ),
+    path('comprobante/<int:pk>/imprimir/', views.comprobante_imprimir, name='comprobante_imprimir'),
 ]

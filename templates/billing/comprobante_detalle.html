@@ -1,454 +1,139 @@
-
 {% extends "base.html" %}
 
-{% block title %}
-    {{ comprobante }} · FacturAR
-{% endblock %}
-
-{% block page_title %}
-    Comprobante
-{% endblock %}
+{% block title %}Detalle · {{ comprobante.tipo }} {{ comprobante.numero|stringformat:"08d" }}{% endblock %}
+{% block page_title %}Comprobante{% endblock %}
 
 {% block content %}
+<div class="max-w-4xl mx-auto">
 
-<div class="max-w-5xl mx-auto">
-
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-
-        <a
-            href="{% url 'billing:comprobantes' %}"
-            class="text-sm text-slate-500 hover:text-indigo-600"
-        >
-            ← Volver a comprobantes
-        </a>
-
-        <div class="flex flex-wrap items-center gap-3">
-
-            {% if comprobante.estado == "BORRADOR" or comprobante.estado == "RECHAZADO" %}
-                {% if comprobante.tipo == "FA" or comprobante.tipo == "FB" or comprobante.tipo == "FC" %}
-
-                    <form
-                        method="post"
-                        action="{% url 'billing:emitir_en_arca' comprobante.pk %}"
-                        onsubmit="return confirm('¿Querés enviar esta factura a ARCA en homologación? Verificá los datos antes de continuar.');"
-                    >
-                        {% csrf_token %}
-
-                        <button
-                            type="submit"
-                            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition"
-                        >
-                            Emitir en ARCA
-                        </button>
-                    </form>
-
-                {% endif %}
-            {% endif %}
-
-            <button
-                type="button"
-                onclick="window.print()"
-                class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
-            >
-                Imprimir
-            </button>
-
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900">
+                {{ comprobante.get_tipo_display }} {{ comprobante.punto_venta.numero|stringformat:"04d" }}-{{ comprobante.numero|stringformat:"08d" }}
+            </h2>
+            <p class="text-slate-500 mt-1">Emitido el {{ comprobante.fecha|date:"d/m/Y" }}</p>
         </div>
-
+        
+        <div class="flex items-center gap-3">
+            <span class="px-4 py-2 rounded-xl text-sm font-bold
+                {% if comprobante.estado == 'APROBADO' %} bg-emerald-100 text-emerald-700
+                {% elif comprobante.estado == 'RECHAZADO' %} bg-red-100 text-red-700
+                {% else %} bg-amber-100 text-amber-700 {% endif %}">
+                {{ comprobante.get_estado_display }}
+            </span>
+            
+            {% if comprobante.estado == 'APROBADO' %}
+                <a href="{% url 'billing:comprobante_imprimir' comprobante.pk %}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Descargar PDF
+                </a>
+            {% endif %}
+        </div>
     </div>
 
-
-    {% if messages %}
-        <div class="space-y-3 mb-6">
-            {% for message in messages %}
-                <div
-                    class="p-4 rounded-xl border text-sm
-                    {% if message.tags == 'success' %}
-                        bg-emerald-50 border-emerald-200 text-emerald-800
-                    {% elif message.tags == 'error' %}
-                        bg-red-50 border-red-200 text-red-800
-                    {% else %}
-                        bg-slate-50 border-slate-200 text-slate-700
-                    {% endif %}"
-                    role="status"
-                >
-                    {{ message }}
-                </div>
-            {% endfor %}
+    <!-- Si es BORRADOR o PENDIENTE, mostramos las acciones a ARCA -->
+    {% if comprobante.estado == 'BORRADOR' or comprobante.estado == 'PENDIENTE' %}
+        <div class="card bg-white rounded-2xl p-6 mb-8 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h3 class="font-bold text-slate-800">Sincronización con ARCA</h3>
+                <p class="text-sm text-slate-500">Este comprobante está guardado en el sistema pero aún no fue autorizado.</p>
+            </div>
+            
+            <div class="flex gap-3">
+                {% if comprobante.estado == 'BORRADOR' %}
+                <form method="post" action="{% url 'billing:emitir_en_arca' comprobante.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition">
+                        Solicitar CAE a ARCA
+                    </button>
+                </form>
+                {% elif comprobante.estado == 'PENDIENTE' %}
+                <form method="post" action="{% url 'billing:verificar_comprobante_arca' comprobante.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-semibold transition">
+                        Verificar Estado
+                    </button>
+                </form>
+                {% endif %}
+            </div>
         </div>
     {% endif %}
 
-
-    <div class="card bg-white rounded-2xl p-6 sm:p-8">
-
-        <!-- Encabezado -->
-
-        <div class="flex flex-col sm:flex-row justify-between gap-6 pb-6 border-b">
-
-            <div>
-
-                <div class="text-sm text-slate-400">
-                    {{ request.tenant.razon_social }}
-                </div>
-
-                <h1 class="text-3xl font-black mt-2">
-                    {{ comprobante.get_tipo_display|default:comprobante.tipo }}
-                </h1>
-
-                <div class="text-lg font-semibold mt-1">
-                    {{ comprobante.punto_venta.numero|stringformat:"04d" }}-{{ comprobante.numero|stringformat:"08d" }}
-                </div>
-
-                <div class="text-xs text-slate-400 mt-2">
-                    {% if comprobante.cae %}
-                        Comprobante con autorización de ARCA
-                    {% else %}
-                        Número local del comprobante
-                    {% endif %}
-                </div>
-
-            </div>
-
-            <div class="sm:text-right">
-
-                <div class="text-sm text-slate-500">
-                    Fecha
-                </div>
-
-                <div class="font-semibold">
-                    {{ comprobante.fecha|date:"d/m/Y" }}
-                </div>
-
-                <div class="mt-3">
-
-                    <span
-                        class="inline-flex px-3 py-1.5 rounded-lg text-sm font-semibold
-                        {% if comprobante.estado == 'APROBADO' %}
-                            bg-emerald-50 text-emerald-700
-                        {% elif comprobante.estado == 'RECHAZADO' %}
-                            bg-red-50 text-red-700
-                        {% elif comprobante.estado == 'PENDIENTE' %}
-                            bg-amber-50 text-amber-700
-                        {% elif comprobante.estado == 'ANULADO' %}
-                            bg-slate-200 text-slate-600
-                        {% else %}
-                            bg-slate-100 text-slate-600
-                        {% endif %}"
-                    >
-                        {{ comprobante.get_estado_display }}
-                    </span>
-
-                </div>
-
-            </div>
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="card bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cliente</p>
+            <p class="font-bold text-slate-800 mt-2">{{ comprobante.cliente.nombre }}</p>
+            <p class="text-sm text-slate-600">{{ comprobante.cliente.tipo_documento }}: {{ comprobante.cliente.numero_documento }}</p>
+            <p class="text-sm text-slate-600">{{ comprobante.cliente.condicion_fiscal }}</p>
         </div>
 
-
-        <!-- Cliente -->
-
-        <div class="py-6 border-b">
-
-            <div class="text-xs uppercase text-slate-400 font-bold">
-                Cliente
-            </div>
-
-            <div class="font-semibold mt-2">
-                {{ comprobante.cliente.nombre }}
-            </div>
-
-            {% if comprobante.cliente.numero_documento %}
-                <div class="text-sm text-slate-500 mt-1">
-                    {{ comprobante.cliente.get_tipo_documento_display|default:comprobante.cliente.tipo_documento }}:
-                    {{ comprobante.cliente.numero_documento }}
+        <div class="card bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Datos Fiscales</p>
+            
+            {% if comprobante.numero_comprobante_asociado %}
+                <div class="mt-2 pb-3 border-b border-slate-100">
+                    <span class="text-sm font-semibold text-slate-700 bg-amber-50 text-amber-700 px-2 py-1 rounded">
+                        Asociado a Factura Nro: {{ comprobante.numero_comprobante_asociado|stringformat:"08d" }}
+                    </span>
                 </div>
             {% endif %}
 
-            {% if comprobante.cliente.condicion_fiscal %}
-                <div class="text-sm text-slate-500 mt-1">
-                    Condición fiscal:
-                    {{ comprobante.cliente.condicion_fiscal }}
-                </div>
-            {% endif %}
-
-            {% if comprobante.cliente.email %}
-                <div class="text-sm text-slate-500 mt-1">
-                    {{ comprobante.cliente.email }}
-                </div>
-            {% endif %}
-
+            <div class="mt-3">
+                <p class="text-sm text-slate-600">CAE: <span class="font-semibold text-slate-800">{{ comprobante.cae|default:"Pendiente" }}</span></p>
+                <p class="text-sm text-slate-600">Vencimiento: <span class="font-semibold text-slate-800">{{ comprobante.cae_vencimiento|date:"d/m/Y"|default:"-" }}</span></p>
+            </div>
         </div>
-
-
-        <!-- Detalle de ítems -->
-
-        <div class="py-6">
-
-            <div class="overflow-x-auto">
-
-                <table class="w-full text-sm">
-
-                    <thead>
-
-                        <tr class="border-b border-slate-200">
-
-                            <th class="text-left py-3 pr-4">
-                                Descripción
-                            </th>
-
-                            <th class="text-right py-3 px-2">
-                                Cant.
-                            </th>
-
-                            <th class="text-right py-3 px-2">
-                                Precio unitario
-                            </th>
-
-                            <th class="text-right py-3 pl-2">
-                                Total
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {% for item in comprobante.items.all %}
-
-                            <tr class="border-b border-slate-100">
-
-                                <td class="py-4 pr-4">
-                                    {{ item.descripcion }}
-                                    <div class="text-xs text-slate-400 mt-1">
-                                        IVA {{ item.alicuota_iva|floatformat:2 }}%
-                                    </div>
-                                </td>
-
-                                <td class="py-4 px-2 text-right whitespace-nowrap">
-                                    {{ item.cantidad }}
-                                </td>
-
-                                <td class="py-4 px-2 text-right whitespace-nowrap">
-                                    ${{ item.precio_unitario|floatformat:2 }}
-                                </td>
-
-                                <td class="py-4 pl-2 text-right font-semibold whitespace-nowrap">
-                                    ${{ item.importe|floatformat:2 }}
-                                </td>
-
-                            </tr>
-
-                        {% empty %}
-
-                            <tr>
-                                <td colspan="4" class="py-8 text-center text-slate-400">
-                                    Este comprobante no tiene ítems.
-                                </td>
-                            </tr>
-
-                        {% endfor %}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-
-        <!-- Totales -->
-
-        <div class="flex justify-end">
-
-            <div class="w-full sm:w-80 space-y-3">
-
-                <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">
-                        Neto
-                    </span>
-
-                    <span>
-                        ${{ comprobante.importe_neto|floatformat:2 }}
-                    </span>
-                </div>
-
-                <div class="flex justify-between text-sm">
-                    <span class="text-slate-500">
-                        IVA
-                    </span>
-
-                    <span>
-                        ${{ comprobante.importe_iva|floatformat:2 }}
-                    </span>
-                </div>
-
-                <div class="border-t border-slate-200 pt-4 flex justify-between items-center gap-4">
-                    <span class="font-bold">
-                        Total
-                    </span>
-
-                    <span class="text-2xl font-black">
-                        ${{ comprobante.importe_total|floatformat:2 }}
-                    </span>
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Datos de autorización -->
-
-        {% if comprobante.cae %}
-
-            <div class="mt-8 p-5 sm:p-6 rounded-2xl bg-emerald-50 border border-emerald-100">
-
-                <div class="flex items-start gap-3">
-
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                        ✓
-                    </div>
-
-                    <div class="min-w-0">
-
-                        <div class="font-bold text-emerald-800">
-                            Comprobante autorizado por ARCA
-                        </div>
-
-                        <div class="text-sm text-emerald-700 mt-1">
-                            La respuesta guardada indica que el comprobante tiene CAE.
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                    <div class="bg-white/70 rounded-xl p-4">
-                        <div class="text-xs uppercase tracking-wide text-emerald-700 font-bold">
-                            Código de autorización electrónico
-                        </div>
-
-                        <div class="font-mono text-lg font-bold text-emerald-900 mt-2 break-all">
-                            {{ comprobante.cae }}
-                        </div>
-                    </div>
-
-                    <div class="bg-white/70 rounded-xl p-4">
-                        <div class="text-xs uppercase tracking-wide text-emerald-700 font-bold">
-                            Vencimiento del CAE
-                        </div>
-
-                        <div class="font-semibold text-emerald-900 mt-2">
-                            {% if comprobante.cae_vencimiento %}
-                                {{ comprobante.cae_vencimiento|date:"d/m/Y" }}
-                            {% else %}
-                                No informado
-                            {% endif %}
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-        {% endif %}
-
-
-        <!-- Respuesta de ARCA -->
-
-        {% if comprobante.observaciones %}
-
-            <div class="mt-6 p-5 rounded-2xl border
-                {% if comprobante.estado == 'RECHAZADO' %}
-                    bg-red-50 border-red-100
-                {% else %}
-                    bg-amber-50 border-amber-100
-                {% endif %}">
-
-                <div class="font-bold
-                    {% if comprobante.estado == 'RECHAZADO' %}
-                        text-red-800
-                    {% else %}
-                        text-amber-800
-                    {% endif %}">
-                    Observaciones de ARCA
-                </div>
-
-                <div class="text-sm mt-2 whitespace-pre-line break-words
-                    {% if comprobante.estado == 'RECHAZADO' %}
-                        text-red-700
-                    {% else %}
-                        text-amber-700
-                    {% endif %}">{{ comprobante.observaciones }}</div>
-
-            </div>
-
-        {% endif %}
-
-
-        <!-- Información de emisión -->
-
-        {% if comprobante.estado == "BORRADOR" or comprobante.estado == "RECHAZADO" %}
-
-            <div class="mt-8 p-4 rounded-xl bg-slate-50 border border-slate-200">
-
-                <div class="text-sm font-semibold text-slate-700">
-                    {% if comprobante.estado == "RECHAZADO" %}
-                        Este comprobante fue rechazado o no obtuvo autorización.
-                    {% else %}
-                        Este comprobante todavía no está autorizado por ARCA.
-                    {% endif %}
-                </div>
-
-                <p class="text-sm text-slate-500 mt-1">
-                    La numeración mostrada puede ser local. No consideres el comprobante
-                    válido como factura electrónica hasta obtener una autorización
-                    confirmada y su CAE.
-                </p>
-
-                {% if comprobante.tipo == "NCA" or comprobante.tipo == "NCB" or comprobante.tipo == "NCC" or comprobante.tipo == "NDA" or comprobante.tipo == "NDB" or comprobante.tipo == "NDC" %}
-                    <p class="text-sm text-amber-700 mt-2">
-                        Las notas de crédito y débito requieren la implementación
-                        de la asociación con el comprobante original.
-                    </p>
-                {% endif %}
-
-            </div>
-
-        {% endif %}
-
     </div>
 
+    <!-- Items -->
+    <div class="card bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-8">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 text-slate-500 text-sm">
+                    <th class="p-4 font-medium border-b border-slate-100">Descripción</th>
+                    <th class="p-4 font-medium border-b border-slate-100 text-right">Cantidad</th>
+                    <th class="p-4 font-medium border-b border-slate-100 text-right">Precio Unit.</th>
+                    <th class="p-4 font-medium border-b border-slate-100 text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                {% for item in comprobante.items.all %}
+                <tr>
+                    <td class="p-4 text-slate-800">{{ item.descripcion }}</td>
+                    <td class="p-4 text-slate-600 text-right">{{ item.cantidad|floatformat:2 }}</td>
+                    <td class="p-4 text-slate-600 text-right">${{ item.precio_unitario|floatformat:2 }}</td>
+                    <td class="p-4 text-slate-800 text-right font-medium">${{ item.importe|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="bg-slate-50 p-6 flex justify-end">
+            <div class="w-64 space-y-3">
+                <div class="flex justify-between text-slate-600 text-sm">
+                    <span>Neto</span>
+                    <span>${{ comprobante.importe_neto|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-slate-600 text-sm">
+                    <span>IVA</span>
+                    <span>${{ comprobante.importe_iva|floatformat:2 }}</span>
+                </div>
+                <div class="flex justify-between text-indigo-700 font-bold text-xl pt-3 border-t border-slate-200">
+                    <span>Total</span>
+                    <span>${{ comprobante.importe_total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if comprobante.observaciones %}
+        <div class="card bg-slate-50 rounded-2xl p-6 border border-slate-100 text-sm text-slate-600">
+            <h4 class="font-bold text-slate-800 mb-2">Observaciones / Respuesta ARCA</h4>
+            <pre class="whitespace-pre-wrap font-sans">{{ comprobante.observaciones }}</pre>
+        </div>
+    {% endif %}
+
 </div>
-
-<style>
-    @media print {
-        body {
-            background: white !important;
-        }
-
-        nav,
-        aside,
-        header,
-        button,
-        form,
-        a[href] {
-            display: none !important;
-        }
-
-        .card {
-            box-shadow: none !important;
-            border: 0 !important;
-        }
-
-        .max-w-5xl {
-            max-width: 100% !important;
-        }
-    }
-</style>
-
 {% endblock %}

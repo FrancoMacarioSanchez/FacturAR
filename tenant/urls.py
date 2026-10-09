@@ -6,11 +6,6 @@ app_name = "tenant"
 
 
 urlpatterns = [
-    path(
-        "",
-        views.dashboard,
-        name="dashboard",
-    ),
 
     path(
         "configuracion/",

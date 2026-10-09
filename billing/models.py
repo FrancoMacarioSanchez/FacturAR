@@ -1,4 +1,37 @@
+import re
 from django.db import models
+from django.core.exceptions import ValidationError
+
+
+def validar_cuit_cuil(documento):
+    """
+    Algoritmo de Módulo 11 para validar CUIT/CUIL según AFIP.
+    """
+    cuit = str(documento).replace("-", "").strip()
+    
+    if len(cuit) != 11 or not cuit.isdigit():
+        return False
+
+    base = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2]
+    suma = sum(int(cuit[i]) * base[i] for i in range(10))
+    resto = suma % 11
+    
+    if resto == 0:
+        digito_esperado = 0
+    elif resto == 1:
+        if cuit[:2] == "20":
+            digito_esperado = 9
+        elif cuit[:2] == "27":
+            digito_esperado = 4
+        elif cuit[:2] == "24":
+            digito_esperado = 1
+        else:
+            digito_esperado = 9
+    else:
+        digito_esperado = 11 - resto
+
+    return int(cuit[10]) == digito_esperado
+
 
 class PuntoVenta(models.Model):
 
@@ -40,10 +73,16 @@ class Cliente(models.Model):
         ("CUIT", "CUIT"),
         ("CUIL", "CUIL"),
         ("PASAPORTE", "Pasaporte"),
-        (
-            "CONSUMIDOR_FINAL",
-            "Consumidor Final"
-        ),
+        ("CONSUMIDOR_FINAL", "Consumidor Final"),
+    ]
+
+    CONDICIONES_FISCALES = [
+        ("Responsable Inscripto", "Responsable Inscripto"),
+        ("Monotributo", "Monotributo"),
+        ("Exento", "IVA Exento"),
+        ("Consumidor Final", "Consumidor Final"),
+        ("No Responsable", "No Responsable"),
+        ("Sujeto No Categorizado", "Sujeto No Categorizado"),
     ]
 
     nombre = models.CharField(
@@ -63,6 +102,7 @@ class Cliente(models.Model):
 
     condicion_fiscal = models.CharField(
         max_length=50,
+        choices=CONDICIONES_FISCALES,
         blank=True
     )
 
@@ -103,6 +143,49 @@ class Cliente(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def clean(self):
+        super().clean()
+
+        if self.tipo_documento == "DNI":
+            numero = self.numero_documento.replace(".", "").strip()
+            if not numero.isdigit() or not (7 <= len(numero) <= 8):
+                raise ValidationError({"numero_documento": "El DNI debe tener entre 7 y 8 números y no contener letras."})
+            self.numero_documento = numero
+
+        elif self.tipo_documento in ["CUIT", "CUIL"]:
+            numero = self.numero_documento.replace("-", "").strip()
+            if not validar_cuit_cuil(numero):
+                raise ValidationError({"numero_documento": "El CUIT/CUIL ingresado es inválido (falló validación de AFIP)."})
+            self.numero_documento = numero
+
+        elif self.tipo_documento == "CONSUMIDOR_FINAL":
+            numero = self.numero_documento.replace(".", "").strip()
+            if numero and not numero.isdigit():
+                raise ValidationError({"numero_documento": "El documento para Consumidor Final debe ser numérico o dejarse en blanco."})
+            self.numero_documento = numero
+
+    def obtener_tipo_comprobante_default(self, condicion_fiscal_emisor):
+        """
+        Devuelve el sufijo del comprobante ('A', 'B' o 'C') que corresponde emitir
+        a este cliente, basándose en la condición fiscal del tenant emisor.
+        """
+        emisor = (condicion_fiscal_emisor or "").upper()
+        receptor = (self.condicion_fiscal or "").upper()
+
+        # Si el emisor es Monotributista o Exento, siempre emite C
+        if "MONOTRIBUTO" in emisor or "EXENTO" in emisor:
+            return "C"
+
+        # Si el emisor es Responsable Inscripto
+        if "RESPONSABLE INSCRIPTO" in emisor:
+            # RI emite A si el receptor es RI o Monotributista (resolución 2021)
+            if "RESPONSABLE INSCRIPTO" in receptor or "MONOTRIBUTO" in receptor:
+                return "A"
+            # Caso contrario (Consumidor Final, Exento, etc), emite B
+            return "B"
+
+        return "C" # Fallback seguro
 
 
 class Comprobante(models.Model):
@@ -230,7 +313,6 @@ class Comprobante(models.Model):
         ]
 
     def __str__(self):
-
         return (
             f"{self.tipo} "
             f"{self.punto_venta.numero:04d}-"

@@ -24,13 +24,13 @@ from .models import (
     ArcaToken,
 )
 
+# =========================================================
+# CONFIGURACIÓN (CON VARIABLES DE ENTORNO)
+# =========================================================
+ARCA_CUIT_FACTURAR = os.getenv("ARCA_CUIT_FACTURAR", "20446699696")
+ARCA_CERT_PATH = os.getenv("ARCA_CERT_PATH")
+ARCA_KEY_PATH = os.getenv("ARCA_KEY_PATH")
 
-# =========================================================
-# CONFIGURACIÓN
-# =========================================================
-ARCA_CUIT_FACTURAR=20446699696
-ARCA_CERT_PATH= 'C:/FacturAR/secrets/facturar.crt'
-ARCA_KEY_PATH= 'C:/FacturAR/secrets/facturar.key'
 WSAA_URLS = {
     "HOMOLOGACION": "https://wsaahomo.afip.gov.ar/ws/services/LoginCms",
     "PRODUCCION": "https://wsaa.afip.gov.ar/ws/services/LoginCms",
@@ -63,22 +63,16 @@ TIPOS_DOCUMENTO_ARCA = {
 # =========================================================
 
 def _obtener_certificado():
-
     cert_path = ARCA_CERT_PATH
-    
     if not cert_path:
-
         raise RuntimeError(
-            "No está definida la variable "
-            "ARCA_CERT_PATH."
+            "No está definida la variable de entorno ARCA_CERT_PATH."
         )
 
     path = Path(cert_path)
-
     if not path.exists():
-
         raise RuntimeError(
-            f"No existe el certificado ARCA: {path}"
+            f"No existe el certificado ARCA en la ruta indicada: {path}"
         )
 
     return path.read_bytes()
@@ -89,22 +83,16 @@ def _obtener_certificado():
 # =========================================================
 
 def _obtener_clave():
-
     key_path = ARCA_KEY_PATH
-
     if not key_path:
-
         raise RuntimeError(
-            "No está definida la variable "
-            "ARCA_KEY_PATH."
+            "No está definida la variable de entorno ARCA_KEY_PATH."
         )
 
     path = Path(key_path)
-
     if not path.exists():
-
         raise RuntimeError(
-            f"No existe la clave privada ARCA: {path}"
+            f"No existe la clave privada ARCA en la ruta indicada: {path}"
         )
 
     return path.read_bytes()
@@ -162,7 +150,6 @@ def crear_login_ticket(servicio="wsfe"):
 # =========================================================
 
 def firmar_login_ticket(xml):
-
     cert_data = _obtener_certificado()
     key_data = _obtener_clave()
 
@@ -263,12 +250,7 @@ def parsear_token_wsaa(respuesta_xml):
     def local_name(tag):
         if "}" in tag:
             return tag.split("}", 1)[1]
-
         return tag
-
-    # =========================================================
-    # 1. Buscar loginCmsReturn dentro del SOAP
-    # =========================================================
 
     login_cms_return = None
 
@@ -296,10 +278,6 @@ def parsear_token_wsaa(respuesta_xml):
             f"{respuesta_xml[:10000]}"
         )
 
-    # =========================================================
-    # 2. El contenido de loginCmsReturn es XML escapado
-    # =========================================================
-
     login_ticket_xml = login_cms_return.text
 
     if not login_ticket_xml:
@@ -309,10 +287,6 @@ def parsear_token_wsaa(respuesta_xml):
 
     login_ticket_xml = login_ticket_xml.strip()
 
-    # =========================================================
-    # 3. Parsear loginTicketResponse
-    # =========================================================
-
     try:
         ticket_root = ET.fromstring(login_ticket_xml)
     except ET.ParseError as e:
@@ -320,10 +294,6 @@ def parsear_token_wsaa(respuesta_xml):
             "WSAA devolvió un loginTicketResponse inválido.\n\n"
             f"{login_ticket_xml[:10000]}"
         ) from e
-
-    # =========================================================
-    # 4. Buscar token, sign y expirationTime
-    # =========================================================
 
     token_element = None
     sign_element = None
@@ -334,16 +304,10 @@ def parsear_token_wsaa(respuesta_xml):
 
         if nombre == "token":
             token_element = elemento
-
         elif nombre == "sign":
             sign_element = elemento
-
         elif nombre == "expirationTime":
             expiration_element = elemento
-
-    # =========================================================
-    # 5. Validar token
-    # =========================================================
 
     if token_element is None:
         raise RuntimeError(
@@ -358,10 +322,6 @@ def parsear_token_wsaa(respuesta_xml):
             "WSAA devolvió el elemento Token vacío."
         )
 
-    # =========================================================
-    # 6. Validar sign
-    # =========================================================
-
     if sign_element is None:
         raise RuntimeError(
             "WSAA devolvió Token pero no devolvió Sign.\n\n"
@@ -375,14 +335,9 @@ def parsear_token_wsaa(respuesta_xml):
             "WSAA devolvió el elemento Sign vacío."
         )
 
-    # =========================================================
-    # 7. Validar expiración
-    # =========================================================
-
     if expiration_element is None:
         raise RuntimeError(
-            "WSAA devolvió Token y Sign pero no devolvió "
-            "expirationTime."
+            "WSAA devolvió Token y Sign pero no devolvió expirationTime."
         )
 
     expiration_text = (
@@ -393,10 +348,6 @@ def parsear_token_wsaa(respuesta_xml):
         raise RuntimeError(
             "WSAA devolvió expirationTime vacío."
         )
-
-    # =========================================================
-    # 8. Convertir fecha
-    # =========================================================
 
     try:
         expiracion = datetime.fromisoformat(
@@ -413,10 +364,6 @@ def parsear_token_wsaa(respuesta_xml):
             expiracion,
             dt_timezone.utc,
         )
-
-    # =========================================================
-    # 9. Retornar credenciales
-    # =========================================================
 
     return token, sign, expiracion
 
@@ -439,7 +386,6 @@ def obtener_token_wsfe():
         )
 
     ambiente = configuracion.ambiente
-
     ahora = timezone.now()
 
     token_existente = (
@@ -494,16 +440,13 @@ def obtener_token_wsfe():
 
 @login_required
 def configuracion(request):
-
     configuracion = (
         ArcaConfiguracion.objects
         .first()
     )
 
     delegacion = None
-
     if configuracion:
-
         delegacion = getattr(
             configuracion,
             "delegacion",
@@ -526,7 +469,6 @@ def configuracion(request):
 
 @login_required
 def delegacion(request):
-
     configuracion, created = (
         ArcaConfiguracion.objects
         .get_or_create(
@@ -546,11 +488,7 @@ def delegacion(request):
     )
 
     if delegacion is None:
-
-        cuit_facturar = os.getenv(
-            "ARCA_CUIT_FACTURAR",
-            "",
-        )
+        cuit_facturar = os.getenv("ARCA_CUIT_FACTURAR", "20446699696")
 
         delegacion = (
             ArcaDelegacion.objects.create(
@@ -575,8 +513,6 @@ def delegacion(request):
 # =========================================================
 # PROBAR WSAA
 # =========================================================
-
-
 
 @login_required
 def verificar_delegacion(request):
@@ -667,7 +603,7 @@ def verificar_delegacion(request):
             "delegacion": delegacion,
         },
     )
-    
+
 # ======================== WSFE =========================
 
 def solicitar_wsfe(
@@ -705,6 +641,7 @@ def solicitar_wsfe(
 
     return response.text
 
+
 def obtener_ultimo_comprobante(
     token,
     cuit,
@@ -736,7 +673,8 @@ def obtener_ultimo_comprobante(
         ambiente=ambiente,
         soap_action="http://ar.gov.afip.dif.FEV1/FECompUltimoAutorizado",
     )
-    
+
+
 def parsear_ultimo_comprobante(respuesta_xml):
     try:
         root = ET.fromstring(respuesta_xml)
@@ -749,7 +687,6 @@ def parsear_ultimo_comprobante(respuesta_xml):
     def local_name(tag):
         if "}" in tag:
             return tag.split("}", 1)[1]
-
         return tag
 
     numero = None
@@ -757,7 +694,6 @@ def parsear_ultimo_comprobante(respuesta_xml):
     for elemento in root.iter():
         if local_name(elemento.tag) == "CbteNro":
             texto = (elemento.text or "").strip()
-
             if texto:
                 numero = int(texto)
                 break
@@ -805,12 +741,7 @@ def consultar_condiciones_iva_receptor():
 
     ambiente = configuracion.ambiente
 
-    cuit_emisor = 20446699696 # os.getenv("ARCA_CUIT_FACTURAR", "")
-
-    if not cuit_emisor:
-        raise RuntimeError(
-            "Falta configurar ARCA_CUIT_FACTURAR."
-        )
+    cuit_emisor = os.getenv("ARCA_CUIT_FACTURAR", "20446699696")
 
     soap_body = f"""<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope
@@ -863,7 +794,6 @@ def consultar_condiciones_iva_receptor():
 
                 if hijo_nombre == "Code":
                     codigo = hijo.text or ""
-
                 elif hijo_nombre == "Msg":
                     mensaje = hijo.text or ""
 
@@ -898,25 +828,25 @@ def consultar_condiciones_iva_receptor():
 
     return condiciones
 
-
 def emitir_factura_wsfe(comprobante):
-    """
-    Emite una factura A, B o C mediante WSFEv1.
-    Usa la configuración activa del tenant y el ambiente indicado.
-    """
-
     from decimal import Decimal, ROUND_HALF_UP
+    from datetime import datetime as fecha_datetime
     from django.db import transaction
-    from django.utils import timezone
     from billing.models import Comprobante
 
     if comprobante.estado == "APROBADO" and comprobante.cae:
         raise RuntimeError("Este comprobante ya tiene CAE y está aprobado.")
 
-    if comprobante.tipo not in ("FA", "FB", "FC"):
+    if comprobante.estado == "PENDIENTE":
         raise RuntimeError(
-            "Por ahora solo se permite emitir facturas A, B y C. "
-            "Las notas de crédito y débito requieren comprobante asociado."
+            "El comprobante está pendiente de verificación en ARCA. "
+            "Consultá su estado antes de volver a emitirlo."
+        )
+
+    if comprobante.estado not in ("BORRADOR", "RECHAZADO"):
+        raise RuntimeError(
+            f"No se puede emitir un comprobante en estado "
+            f"{comprobante.get_estado_display()}."
         )
 
     configuracion = (
@@ -929,10 +859,7 @@ def emitir_factura_wsfe(comprobante):
     if not configuracion:
         raise RuntimeError("No hay una configuración ARCA activa.")
 
-    if configuracion.ambiente != "HOMOLOGACION":
-        raise RuntimeError(
-            "La emisión está limitada a homologación durante esta etapa."
-        )
+    ambiente = configuracion.ambiente
 
     if not comprobante.punto_venta.activo:
         raise RuntimeError("El punto de venta está inactivo.")
@@ -942,23 +869,27 @@ def emitir_factura_wsfe(comprobante):
             "El punto de venta no está habilitado para operar con ARCA."
         )
 
-    if comprobante.estado not in ("BORRADOR", "RECHAZADO"):
-        raise RuntimeError(
-            f"No se puede emitir un comprobante en estado "
-            f"{comprobante.get_estado_display()}."
-        )
-
     items = list(comprobante.items.all())
 
     if not items:
         raise RuntimeError("El comprobante no tiene ítems.")
 
-    token = obtener_token_wsfe()
-    ambiente = configuracion.ambiente
+    # ---------------------------------------------------------
+    # VALIDACIÓN ESPECÍFICA PARA NOTAS DE CRÉDITO/DÉBITO
+    # ---------------------------------------------------------
+    TIPO_FACTURA_ASOCIADA = {
+        "NCA": 1, "NDA": 1,
+        "NCB": 6, "NDB": 6,
+        "NCC": 11, "NDC": 11,
+    }
 
-    # El CUIT usado en Auth debe corresponder al titular
-    # del certificado que firmó el acceso WSAA.
-    
+    if comprobante.tipo in TIPO_FACTURA_ASOCIADA:
+        if not comprobante.numero_comprobante_asociado:
+            raise RuntimeError(
+                "Para emitir una Nota de Crédito o Débito, es obligatorio "
+                "indicar el número de la factura asociada."
+            )
+
     if configuracion.metodo == "DELEGACION":
         try:
             delegacion_configurada = configuracion.delegacion
@@ -976,43 +907,38 @@ def emitir_factura_wsfe(comprobante):
                 "de WSFE antes de emitir."
             )
 
-        # CUIT del contribuyente representado ante ARCA.
-        cuit_emisor = str(
-            delegacion_configurada.cuit_cliente or ""
-        ).strip()
+        cuit_emisor = str(delegacion_configurada.cuit_cliente or "").strip()
+        cuit_titular = str(delegacion_configurada.cuit_facturar or "").strip()
 
-        # La CUIT del titular del certificado debe ser FacturAR.
-        cuit_titular_certificado = str(
-            delegacion_configurada.cuit_facturar or ""
-        ).strip()
-
-        if cuit_titular_certificado != str(ARCA_CUIT_FACTURAR):
+        if cuit_titular != str(ARCA_CUIT_FACTURAR):
             raise RuntimeError(
                 "La CUIT titular del certificado no coincide con "
                 "la CUIT configurada para FacturAR."
             )
+
+        if not cuit_emisor:
+            raise RuntimeError("La delegación no tiene configurado el CUIT del cliente.")
     else:
-        cuit_emisor = str(
-            comprobante.cuit_emisor or ""
-        ).strip()
+        cuit_emisor = str(comprobante.cuit_emisor or "").strip()
+        if not cuit_emisor:
+            raise RuntimeError("El comprobante no tiene CUIT emisor.")
+
+    token = obtener_token_wsfe()
 
     tipo_arca = TIPOS_COMPROBANTE_ARCA[comprobante.tipo]
+    punto_venta = comprobante.punto_venta.numero
 
-    # El número oficial se obtiene de ARCA, no del borrador local.
     respuesta_ultimo = obtener_ultimo_comprobante(
         token=token,
         cuit=cuit_emisor,
-        punto_venta=comprobante.punto_venta.numero,
+        punto_venta=punto_venta,
         tipo_comprobante=tipo_arca,
         ambiente=ambiente,
     )
 
-    ultimo_autorizado = parsear_ultimo_comprobante(
-        respuesta_ultimo
-    )
+    ultimo_autorizado = parsear_ultimo_comprobante(respuesta_ultimo)
     numero_arca = ultimo_autorizado + 1
 
-    # Evita sobrescribir otro comprobante local que ya use ese número.
     conflicto = (
         Comprobante.objects
         .filter(
@@ -1027,8 +953,7 @@ def emitir_factura_wsfe(comprobante):
     if conflicto:
         raise RuntimeError(
             f"ARCA espera el número {numero_arca}, pero ya existe "
-            "otro comprobante local con ese número. No se envió la factura. "
-            "Revisá los borradores de ese punto de venta y tipo."
+            "otro comprobante local con ese número. No se envió la factura."
         )
 
     def centavos(valor):
@@ -1037,7 +962,6 @@ def emitir_factura_wsfe(comprobante):
             rounding=ROUND_HALF_UP,
         )
 
-    # El sistema guarda el importe de cada ítem con IVA incluido.
     total = centavos(comprobante.importe_total)
 
     if total <= 0:
@@ -1045,126 +969,73 @@ def emitir_factura_wsfe(comprobante):
 
     iva_por_alicuota = {}
 
-    if comprobante.tipo in ("FA", "FB"):
+    if comprobante.tipo in ("FA", "FB", "NCA", "NCB", "NDA", "NDB"):
+        alicuotas_validas = {
+            Decimal("0.00"), Decimal("2.50"), Decimal("5.00"),
+            Decimal("10.50"), Decimal("21.00"), Decimal("27.00"),
+        }
+
         for item in items:
             alicuota = centavos(item.alicuota_iva)
             importe_bruto = centavos(item.importe)
 
-            if alicuota not in (
-                Decimal("0.00"),
-                Decimal("2.50"),
-                Decimal("5.00"),
-                Decimal("10.50"),
-                Decimal("21.00"),
-                Decimal("27.00"),
-            ):
-                raise RuntimeError(
-                    f"La alícuota de IVA {alicuota}% no es válida para WSFEv1."
-                )
+            if alicuota not in alicuotas_validas:
+                raise RuntimeError(f"La alícuota de IVA {alicuota}% no es válida.")
 
             divisor = Decimal("1") + alicuota / Decimal("100")
             neto_item = centavos(importe_bruto / divisor)
             iva_item = centavos(importe_bruto - neto_item)
 
             if alicuota not in iva_por_alicuota:
-                iva_por_alicuota[alicuota] = {
-                    "neto": Decimal("0.00"),
-                    "iva": Decimal("0.00"),
-                }
+                iva_por_alicuota[alicuota] = {"neto": Decimal("0.00"), "iva": Decimal("0.00")}
 
             iva_por_alicuota[alicuota]["neto"] += neto_item
             iva_por_alicuota[alicuota]["iva"] += iva_item
 
-        neto = centavos(
-            sum(
-                (datos["neto"] for datos in iva_por_alicuota.values()),
-                Decimal("0.00"),
-            )
-        )
-        iva_total = centavos(
-            sum(
-                (datos["iva"] for datos in iva_por_alicuota.values()),
-                Decimal("0.00"),
-            )
-        )
+        neto = centavos(sum((dato["neto"] for dato in iva_por_alicuota.values()), Decimal("0.00")))
+        iva_total = centavos(sum((dato["iva"] for dato in iva_por_alicuota.values()), Decimal("0.00")))
 
-        # No se permite enviar importes que no coincidan con el cálculo
-        # del detalle, porque ARCA puede rechazarlos.
         if centavos(neto + iva_total) != total:
             raise RuntimeError(
-                "Los importes del detalle no coinciden con el total "
-                "del comprobante. Revisá el cálculo de IVA antes de emitir."
+                "Los importes del detalle no coinciden con el total. "
+                "Revisá el cálculo de IVA antes de emitir."
             )
     else:
-        # Factura C: no se discrimina IVA.
         neto = total
         iva_total = Decimal("0.00")
         iva_por_alicuota = {}
 
     cliente = comprobante.cliente
-    tipo_documento = TIPOS_DOCUMENTO_ARCA.get(
-        cliente.tipo_documento
-    )
+    tipo_documento = TIPOS_DOCUMENTO_ARCA.get(cliente.tipo_documento)
 
     if tipo_documento is None:
-        raise RuntimeError(
-            f"Tipo de documento receptor no reconocido: "
-            f"{cliente.tipo_documento}"
-        )
+        raise RuntimeError(f"Tipo de documento no reconocido: {cliente.tipo_documento}")
 
-    documento_receptor = (
-        "".join(
-            caracter
-            for caracter in str(cliente.numero_documento or "")
-            if caracter.isdigit()
-        )
-    )
+    documento_receptor = "".join(caracter for caracter in str(cliente.numero_documento or "") if caracter.isdigit())
 
     if cliente.tipo_documento == "CONSUMIDOR_FINAL":
-        documento_receptor = ""
         tipo_documento = 99
+        documento_receptor = ""
     elif not documento_receptor:
-        raise RuntimeError(
-            "El cliente debe tener un número de documento para emitir."
-        )
+        raise RuntimeError("El cliente debe tener un número de documento.")
 
-    # Condición de IVA del receptor exigida por la versión actual
-    # de WSFEv1. Se admiten nombres habituales almacenados en Cliente.
-    condicion = (
-        (cliente.condicion_fiscal or "")
-        .strip()
-        .lower()
-        .replace("_", " ")
-    )
+    condicion = (cliente.condicion_fiscal or "").strip().lower().replace("_", " ")
 
     condiciones_iva = {
-        "responsable inscripto": 1,
-        "iva responsable inscripto": 1,
-        "monotributista": 6,
-        "monotributo": 6,
-        "exento": 4,
-        "iva exento": 4,
-        "consumidor final": 5,
-        "no responsable": 7,
-        "sujeto no categorizado": 8,
-        "proveedor del exterior": 9,
-        "cliente del exterior": 10,
-        "iva no alcanzado": 15,
-        "monotributo social": 13,
+        "responsable inscripto": 1, "iva responsable inscripto": 1,
+        "monotributista": 6, "monotributo": 6, "exento": 4, "iva exento": 4,
+        "consumidor final": 5, "no responsable": 7, "sujeto no categorizado": 8,
+        "proveedor del exterior": 9, "cliente del exterior": 10,
+        "iva no alcanzado": 15, "monotributo social": 13,
     }
 
     condicion_iva_id = condiciones_iva.get(condicion)
-
     if condicion_iva_id is None:
-        raise RuntimeError(
-            "No se reconoce la condición fiscal del receptor. "
-            "Actualizá el campo condición fiscal del cliente usando "
-            "un valor válido antes de emitir."
-        )
+        raise RuntimeError("No se reconoce la condición fiscal del receptor.")
 
-    def tag(parent, name, value):
-        elemento = ET.SubElement(parent, f"ar:{name}")
-        elemento.text = str(value)
+    def tag(parent, nombre, valor):
+        elemento = ET.SubElement(parent, f"ar:{nombre}")
+        elemento.text = str(valor)
         return elemento
 
     envelope = ET.Element(
@@ -1174,6 +1045,7 @@ def emitir_factura_wsfe(comprobante):
             "xmlns:ar": "http://ar.gov.afip.dif.FEV1/",
         },
     )
+
     body = ET.SubElement(envelope, "soapenv:Body")
     solicitud = ET.SubElement(body, "ar:FECAESolicitar")
 
@@ -1184,14 +1056,15 @@ def emitir_factura_wsfe(comprobante):
 
     request = ET.SubElement(solicitud, "ar:FeCAEReq")
     cabecera = ET.SubElement(request, "ar:FeCabReq")
+
     tag(cabecera, "CantReg", 1)
-    tag(cabecera, "PtoVta", comprobante.punto_venta.numero)
+    tag(cabecera, "PtoVta", punto_venta)
     tag(cabecera, "CbteTipo", tipo_arca)
 
     detalles = ET.SubElement(request, "ar:FeDetReq")
     detalle = ET.SubElement(detalles, "ar:FECAEDetRequest")
 
-    tag(detalle, "Concepto", 1)  # Productos/bienes
+    tag(detalle, "Concepto", 1)
     tag(detalle, "DocTipo", tipo_documento)
     tag(detalle, "DocNro", documento_receptor or 0)
     tag(detalle, "CbteDesde", numero_arca)
@@ -1207,23 +1080,27 @@ def emitir_factura_wsfe(comprobante):
     tag(detalle, "MonCotiz", "1.000000")
     tag(detalle, "CondicionIVAReceptorId", condicion_iva_id)
 
-    if comprobante.tipo in ("FA", "FB") and iva_por_alicuota:
-        iva_container = ET.SubElement(detalle, "ar:Iva")
+    # ---------------------------------------------------------
+    # COMPROBANTES ASOCIADOS (PARA NC/ND)
+    # ---------------------------------------------------------
+    if comprobante.tipo in TIPO_FACTURA_ASOCIADA:
+        cbtes_asoc = ET.SubElement(detalle, "ar:CbtesAsoc")
+        cbte_asoc = ET.SubElement(cbtes_asoc, "ar:CbteAsoc")
+        
+        tag(cbte_asoc, "Tipo", TIPO_FACTURA_ASOCIADA[comprobante.tipo])
+        tag(cbte_asoc, "PtoVta", punto_venta)
+        tag(cbte_asoc, "Nro", comprobante.numero_comprobante_asociado)
 
+    if comprobante.tipo in ("FA", "FB", "NCA", "NCB", "NDA", "NDB") and iva_por_alicuota:
+        iva_container = ET.SubElement(detalle, "ar:Iva")
         codigos_iva = {
-            Decimal("0.00"): 3,
-            Decimal("2.50"): 9,
-            Decimal("5.00"): 8,
-            Decimal("10.50"): 4,
-            Decimal("21.00"): 5,
-            Decimal("27.00"): 6,
+            Decimal("0.00"): 3, Decimal("2.50"): 9, Decimal("5.00"): 8,
+            Decimal("10.50"): 4, Decimal("21.00"): 5, Decimal("27.00"): 6,
         }
 
         for alicuota in sorted(iva_por_alicuota):
             datos = iva_por_alicuota[alicuota]
-            alicuota_xml = ET.SubElement(
-                iva_container, "ar:AlicIva"
-            )
+            alicuota_xml = ET.SubElement(iva_container, "ar:AlicIva")
             tag(alicuota_xml, "Id", codigos_iva[alicuota])
             tag(alicuota_xml, "BaseImp", f"{datos['neto']:.2f}")
             tag(alicuota_xml, "Importe", f"{datos['iva']:.2f}")
@@ -1234,22 +1111,57 @@ def emitir_factura_wsfe(comprobante):
         xml_declaration=True,
     ).decode("utf-8")
 
-    respuesta_xml = solicitar_wsfe(
-        soap_body,
-        ambiente=ambiente,
-        soap_action="http://ar.gov.afip.dif.FEV1/FECAESolicitar",
-    )
+    try:
+        respuesta_xml = solicitar_wsfe(
+            soap_body,
+            ambiente=ambiente,
+            soap_action="http://ar.gov.afip.dif.FEV1/FECAESolicitar",
+        )
+    except Exception as exc:
+        comprobante.numero = numero_arca
+        comprobante.cuit_emisor = cuit_emisor
+        comprobante.estado = "PENDIENTE"
+        comprobante.respuesta_arca = {
+            "estado": "PENDIENTE_VERIFICACION",
+            "numero_consultado": numero_arca,
+            "punto_venta": punto_venta,
+            "tipo_arca": tipo_arca,
+            "error_comunicacion": str(exc),
+        }
+        comprobante.observaciones = (
+            "No se pudo confirmar la respuesta de ARCA. "
+            "Consultá el estado del comprobante antes de reintentar. "
+            f"Detalle: {exc}"
+        )
+        comprobante.save(update_fields=["numero", "cuit_emisor", "estado", "respuesta_arca", "observaciones", "actualizado"])
+        raise RuntimeError(
+            "No se pudo confirmar el resultado de la emisión. "
+            "El comprobante quedó pendiente de verificación para evitar una posible duplicación."
+        ) from exc
 
     try:
         respuesta_root = ET.fromstring(respuesta_xml)
     except ET.ParseError as exc:
+        comprobante.numero = numero_arca
+        comprobante.cuit_emisor = cuit_emisor
+        comprobante.estado = "PENDIENTE"
+        comprobante.respuesta_arca = {
+            "estado": "PENDIENTE_VERIFICACION",
+            "numero_consultado": numero_arca,
+            "punto_venta": punto_venta,
+            "tipo_arca": tipo_arca,
+            "respuesta_xml": respuesta_xml[:15000],
+            "error_parseo": str(exc),
+        }
+        comprobante.observaciones = "ARCA respondió, pero no se pudo interpretar la respuesta."
+        comprobante.save(update_fields=["numero", "cuit_emisor", "estado", "respuesta_arca", "observaciones", "actualizado"])
         raise RuntimeError(
-            "ARCA devolvió una respuesta XML inválida. "
-            "No se puede confirmar el resultado de la emisión."
+            "ARCA devolvió una respuesta que no se pudo interpretar. "
+            "El comprobante quedó pendiente de verificación."
         ) from exc
 
-    def nombre_local(tag_xml):
-        return tag_xml.split("}", 1)[-1].split(":", 1)[-1]
+    def nombre_local(nombre):
+        return nombre.split("}", 1)[-1].split(":", 1)[-1]
 
     valores = {}
     errores = []
@@ -1258,24 +1170,16 @@ def emitir_factura_wsfe(comprobante):
     for elemento in respuesta_root.iter():
         nombre = nombre_local(elemento.tag)
 
-        if nombre in (
-            "Resultado",
-            "CAE",
-            "CAEFchVto",
-            "CbteDesde",
-            "CbteHasta",
-        ):
+        if nombre in ("Resultado", "CAE", "CAEFchVto", "CbteDesde", "CbteHasta"):
             valores[nombre] = (elemento.text or "").strip()
-
         elif nombre in ("Err", "Obs"):
             codigo = ""
             mensaje = ""
-
             for hijo in elemento.iter():
-                hijo_nombre = nombre_local(hijo.tag)
-                if hijo_nombre == "Code":
+                nombre_hijo = nombre_local(hijo.tag)
+                if nombre_hijo == "Code":
                     codigo = (hijo.text or "").strip()
-                elif hijo_nombre == "Msg":
+                elif nombre_hijo == "Msg":
                     mensaje = (hijo.text or "").strip()
 
             if mensaje:
@@ -1289,61 +1193,58 @@ def emitir_factura_wsfe(comprobante):
     cae = valores.get("CAE", "")
     vencimiento = valores.get("CAEFchVto", "")
 
-    comprobante.respuesta_arca = {
-        "xml": respuesta_xml,
-        "resultado": resultado,
-        "errores": errores,
-        "observaciones": observaciones,
-    }
-    comprobante.observaciones = "\n".join(
-        errores + observaciones
-    )
-
     if resultado == "A" and cae:
-        from datetime import datetime as fecha_datetime
-
         with transaction.atomic():
             comprobante.numero = numero_arca
             comprobante.cuit_emisor = cuit_emisor
             comprobante.estado = "APROBADO"
             comprobante.cae = cae
-
+            comprobante.observaciones = "\n".join(observaciones)
+            comprobante.respuesta_arca = {
+                "resultado": resultado,
+                "cae": cae,
+                "cae_vencimiento": vencimiento,
+                "errores": errores,
+                "observaciones": observaciones,
+                "xml": respuesta_xml,
+            }
             if vencimiento:
-                comprobante.cae_vencimiento = fecha_datetime.strptime(
-                    vencimiento, "%Y%m%d"
-                ).date()
+                comprobante.cae_vencimiento = fecha_datetime.strptime(vencimiento, "%Y%m%d").date()
 
-            comprobante.save(
-                update_fields=[
-                    "numero",
-                    "cuit_emisor",
-                    "estado",
-                    "cae",
-                    "cae_vencimiento",
-                    "respuesta_arca",
-                    "observaciones",
-                    "actualizado",
-                ]
-            )
-
+            comprobante.save(update_fields=["numero", "cuit_emisor", "estado", "cae", "cae_vencimiento", "respuesta_arca", "observaciones", "actualizado"])
         return comprobante
 
-    comprobante.estado = "RECHAZADO"
-    comprobante.save(
-        update_fields=[
-            "respuesta_arca",
-            "observaciones",
-            "estado",
-            "actualizado",
-        ]
-    )
+    if resultado == "R":
+        comprobante.numero = numero_arca
+        comprobante.cuit_emisor = cuit_emisor
+        comprobante.estado = "RECHAZADO"
+        comprobante.respuesta_arca = {
+            "resultado": resultado,
+            "errores": errores,
+            "observaciones": observaciones,
+            "xml": respuesta_xml,
+        }
+        comprobante.observaciones = "\n".join(errores + observaciones)
+        comprobante.save(update_fields=["numero", "cuit_emisor", "estado", "respuesta_arca", "observaciones", "actualizado"])
 
-    detalle_error = " | ".join(errores + observaciones)
-    raise RuntimeError(
-        "ARCA no autorizó el comprobante. "
-        + (detalle_error or "La respuesta no incluyó un CAE autorizado.")
-    )
-    
+        detalle_error = " | ".join(errores + observaciones)
+        raise RuntimeError("ARCA rechazó el comprobante. " + (detalle_error or "Revisá la respuesta de ARCA."))
+
+    comprobante.numero = numero_arca
+    comprobante.cuit_emisor = cuit_emisor
+    comprobante.estado = "PENDIENTE"
+    comprobante.respuesta_arca = {
+        "estado": "PENDIENTE_VERIFICACION",
+        "resultado": resultado,
+        "errores": errores,
+        "observaciones": observaciones,
+        "xml": respuesta_xml,
+    }
+    comprobante.observaciones = "ARCA no devolvió una autorización ni un rechazo concluyente."
+    comprobante.save(update_fields=["numero", "cuit_emisor", "estado", "respuesta_arca", "observaciones", "actualizado"])
+
+    raise RuntimeError("No se pudo confirmar si ARCA autorizó el comprobante. Quedó pendiente de verificación.")
+
 
 def consultar_comprobante_wsfe(
     token,

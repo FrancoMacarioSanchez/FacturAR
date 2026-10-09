@@ -1,730 +1,273 @@
 {% extends "base.html" %}
 
-{% block title %}
-    Nueva factura · FacturAR
-{% endblock %}
-
-{% block page_title %}
-    Nueva factura
-{% endblock %}
+{% block title %}Nueva factura · FacturAR{% endblock %}
+{% block page_title %}Nueva factura{% endblock %}
 
 {% block content %}
-
 <div class="max-w-7xl mx-auto">
 
-<form
-    method="post"
-    id="factura-form"
->
-
+<form method="post" id="factura-form">
     {% csrf_token %}
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
         <div class="xl:col-span-2 space-y-6">
 
             <!-- DATOS -->
-
-            <section class="card bg-white rounded-2xl p-6">
-
+            <section class="card bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                 <div class="flex items-center justify-between mb-6">
-
                     <div>
-
-                        <h2 class="font-bold text-lg">
-                            Datos del comprobante
-                        </h2>
-
-                        <p class="text-sm text-slate-400">
-                            Información básica de la factura
-                        </p>
-
+                        <h2 class="font-bold text-lg text-slate-800">Datos del comprobante</h2>
+                        <p class="text-sm text-slate-400 mt-1">Información básica de la operación</p>
                     </div>
-
-                    <span
-                        class="
-                            px-3
-                            py-1.5
-                            rounded-lg
-                            bg-indigo-50
-                            text-indigo-700
-                            text-sm
-                            font-bold
-                        "
-                    >
-                        Borrador
-                    </span>
-
+                    <span class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-bold">Borrador</span>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
+                    <!-- TIPO DE COMPROBANTE -->
                     <div>
-
-                        <label class="text-sm font-semibold">
-                            Tipo
-                        </label>
-
-                        <select
-                            name="tipo"
-                            id="tipo"
-                            class="
-                                mt-2
-                                w-full
-                                px-4
-                                py-3
-                                rounded-xl
-                                border
-                                border-slate-200
-                                bg-white
-                            "
-                        >
-
-                            <option value="FA">
-                                Factura A
-                            </option>
-
-                            <option value="FB">
-                                Factura B
-                            </option>
-
-                            <option value="FC" selected>
-                                Factura C
-                            </option>
-
+                        <label class="text-sm font-semibold text-slate-700">Tipo de operación</label>
+                        <select name="tipo" id="tipo_operacion_select" class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                            <option value="F" selected>Factura</option>
+                            <option value="NC">Nota de Crédito</option>
+                            <option value="ND">Nota de Débito</option>
                         </select>
-
                     </div>
 
-
+                    <!-- PUNTO DE VENTA -->
                     <div>
-
-                        <label class="text-sm font-semibold">
-                            Punto de venta
-                        </label>
-
-                        <select
-                            name="punto_venta"
-                            required
-                            class="
-                                mt-2
-                                w-full
-                                px-4
-                                py-3
-                                rounded-xl
-                                border
-                                border-slate-200
-                                bg-white
-                            "
-                        >
-
+                        <label class="text-sm font-semibold text-slate-700">Punto de venta</label>
+                        <select name="punto_venta" id="punto_venta_select" required class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
                             {% for punto in puntos_venta %}
-
-                                <option value="{{ punto.id }}">
-                                    {{ punto.numero|stringformat:"04d" }}
-                                    ·
-                                    {{ punto.nombre }}
-                                </option>
-
+                                <option value="{{ punto.id }}">{{ punto.numero|stringformat:"04d" }} · {{ punto.nombre }}</option>
                             {% empty %}
-
-                                <option>
-                                    No hay puntos de venta
-                                </option>
-
+                                <option value="">No hay puntos de venta activos</option>
                             {% endfor %}
-
                         </select>
-
                     </div>
 
-
+                    <!-- FECHA -->
                     <div>
-
-                        <label class="text-sm font-semibold">
-                            Fecha
-                        </label>
-
-                        <input
-                            type="date"
-                            name="fecha"
-                            value="{{ hoy|date:'Y-m-d' }}"
-                            required
-                            class="
-                                mt-2
-                                w-full
-                                px-4
-                                py-3
-                                rounded-xl
-                                border
-                                border-slate-200
-                            "
-                        >
-
+                        <label class="text-sm font-semibold text-slate-700">Fecha</label>
+                        <input type="date" name="fecha" value="{{ hoy|date:'Y-m-d' }}" required class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
                     </div>
-
                 </div>
 
-
+                <!-- CLIENTE -->
                 <div class="mt-5">
-
-                    <label class="text-sm font-semibold">
-                        Cliente
-                    </label>
-
-                    <select
-                        name="cliente"
-                        required
-                        class="
-                            mt-2
-                            w-full
-                            px-4
-                            py-3
-                            rounded-xl
-                            border
-                            border-slate-200
-                            bg-white
-                        "
-                    >
-
-                        <option value="">
-                            Seleccionar cliente...
-                        </option>
-
+                    <label class="text-sm font-semibold text-slate-700">Cliente</label>
+                    <select name="cliente" id="cliente_select" required class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                        <option value="">Seleccionar cliente...</option>
                         {% for cliente in clientes %}
-
                             <option value="{{ cliente.id }}">
-                                {{ cliente.nombre }}
-
-                                {% if cliente.numero_documento %}
-                                    · {{ cliente.numero_documento }}
-                                {% endif %}
+                                {{ cliente.nombre }} {% if cliente.numero_documento %}· {{ cliente.numero_documento }}{% endif %}
                             </option>
-
                         {% endfor %}
-
                     </select>
+                </div>
 
+                <!-- COMPROBANTE ASOCIADO (OCULTO POR DEFECTO) -->
+                <div id="div_comprobante_asociado" class="mt-5 p-4 bg-slate-50 rounded-xl border border-slate-100 hidden">
+                    <label class="text-sm font-semibold text-slate-700">
+                        Seleccionar Factura a afectar <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex gap-3 mt-2">
+                        <select name="comprobante_asociado_id" id="comprobante_asociado_select" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                            <option value="">Primero seleccioná Cliente y Punto de Venta</option>
+                        </select>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Al seleccionar la factura, se cargarán sus importes automáticamente.</p>
                 </div>
 
             </section>
-
 
             <!-- PRODUCTOS -->
-
-            <section class="card bg-white rounded-2xl p-6">
-
+            <section class="card bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                 <div class="flex items-center justify-between mb-5">
-
                     <div>
-
-                        <h2 class="font-bold text-lg">
-                            Productos
-                        </h2>
-
-                        <p class="text-sm text-slate-400">
-                            Agregá los productos del comprobante.
-                        </p>
-
+                        <h2 class="font-bold text-lg text-slate-800">Productos / Servicios</h2>
                     </div>
-
-                    <button
-                        type="button"
-                        onclick="agregarItem()"
-                        class="
-                            px-4
-                            py-2.5
-                            rounded-xl
-                            bg-slate-100
-                            hover:bg-slate-200
-                            text-sm
-                            font-semibold
-                        "
-                    >
-                        + Agregar
+                    <button type="button" onclick="agregarItem()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-sm font-semibold text-slate-700 transition">
+                        + Agregar ítem
                     </button>
-
                 </div>
 
-
-                <div
-                    id="items-container"
-                    class="space-y-3"
-                >
-
-                    <div
-                        class="item-row grid grid-cols-12 gap-3"
-                    >
-
-                        <div class="col-span-12 md:col-span-5">
-
-                            <input
-                                name="descripcion[]"
-                                placeholder="Descripción"
-                                required
-                                class="
-                                    w-full
-                                    px-4
-                                    py-3
-                                    rounded-xl
-                                    border
-                                    border-slate-200
-                                "
-                            >
-
-                        </div>
-
-                        <div class="col-span-4 md:col-span-2">
-
-                            <input
-                                name="cantidad[]"
-                                type="number"
-                                step="0.001"
-                                min="0.001"
-                                value="1"
-                                required
-                                oninput="calcularTotales()"
-                                class="
-                                    w-full
-                                    px-4
-                                    py-3
-                                    rounded-xl
-                                    border
-                                    border-slate-200
-                                "
-                            >
-
-                        </div>
-
-                        <div class="col-span-4 md:col-span-2">
-
-                            <input
-                                name="precio[]"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value="0"
-                                required
-                                oninput="calcularTotales()"
-                                class="
-                                    w-full
-                                    px-4
-                                    py-3
-                                    rounded-xl
-                                    border
-                                    border-slate-200
-                                "
-                            >
-
-                        </div>
-
-                        <div class="col-span-3 md:col-span-2">
-
-                            <select
-                                name="alicuota_iva[]"
-                                onchange="calcularTotales()"
-                                class="
-                                    w-full
-                                    px-3
-                                    py-3
-                                    rounded-xl
-                                    border
-                                    border-slate-200
-                                    bg-white
-                                "
-                            >
-
-                                <option value="0">
-                                    IVA 0%
-                                </option>
-
-                                <option value="10.5">
-                                    IVA 10,5%
-                                </option>
-
-                                <option value="21" selected>
-                                    IVA 21%
-                                </option>
-
-                                <option value="27">
-                                    IVA 27%
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <div class="col-span-1 flex items-center justify-center">
-
-                            <button
-                                type="button"
-                                onclick="eliminarItem(this)"
-                                class="
-                                    text-slate-400
-                                    hover:text-red-600
-                                    text-xl
-                                "
-                            >
-                                ×
-                            </button>
-
-                        </div>
-
-                    </div>
-
+                <div id="items-container" class="space-y-3">
+                    <!-- Fila inyectada por JS o default -->
                 </div>
-
             </section>
-
         </div>
 
-
-        <!-- RESUMEN -->
-
+        <!-- RESUMEN LATERAL -->
         <aside>
-
-            <div
-                class="
-                    card
-                    bg-white
-                    rounded-2xl
-                    p-6
-                    sticky
-                    top-28
-                "
-            >
-
-                <h2 class="font-bold text-lg">
-                    Resumen
-                </h2>
-
+            <div class="card bg-white rounded-2xl p-6 sticky top-28 shadow-sm border border-slate-100">
+                <h2 class="font-bold text-lg text-slate-800 border-b border-slate-100 pb-4">Resumen</h2>
                 <div class="space-y-4 mt-6">
-
                     <div class="flex justify-between text-sm">
-
-                        <span class="text-slate-500">
-                            Neto
-                        </span>
-
-                        <span
-                            id="resumen-neto"
-                            class="font-semibold"
-                        >
-                            $0,00
-                        </span>
-
+                        <span class="text-slate-500">Neto</span>
+                        <span id="resumen-neto" class="font-semibold text-slate-800">$0,00</span>
                     </div>
-
                     <div class="flex justify-between text-sm">
-
-                        <span class="text-slate-500">
-                            IVA
-                        </span>
-
-                        <span
-                            id="resumen-iva"
-                            class="font-semibold"
-                        >
-                            $0,00
-                        </span>
-
+                        <span class="text-slate-500">IVA</span>
+                        <span id="resumen-iva" class="font-semibold text-slate-800">$0,00</span>
                     </div>
-
-                    <div
-                        class="
-                            border-t
-                            border-slate-100
-                            pt-5
-                            flex
-                            justify-between
-                            items-end
-                        "
-                    >
-
-                        <span class="font-semibold">
-                            Total
-                        </span>
-
-                        <span
-                            id="resumen-total"
-                            class="
-                                text-3xl
-                                font-black
-                                text-indigo-600
-                            "
-                        >
-                            $0,00
-                        </span>
-
+                    <div class="border-t border-slate-100 pt-5 flex justify-between items-end">
+                        <span class="font-semibold text-slate-700">Total</span>
+                        <span id="resumen-total" class="text-3xl font-black text-indigo-600">$0,00</span>
                     </div>
-
                 </div>
 
-                <div class="mt-7 space-y-3">
-
-                    <button
-                        type="submit"
-                        class="
-                            w-full
-                            bg-slate-900
-                            hover:bg-slate-800
-                            text-white
-                            py-3.5
-                            rounded-xl
-                            font-semibold
-                        "
-                    >
-                        Guardar borrador
+                <div class="mt-8">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-semibold shadow-sm shadow-indigo-600/20 transition">
+                        Generar Borrador →
                     </button>
-
-                    <button
-                        type="button"
-                        onclick="confirmarEmision()"
-                        class="
-                            w-full
-                            bg-indigo-600
-                            hover:bg-indigo-700
-                            text-white
-                            py-3.5
-                            rounded-xl
-                            font-semibold
-                        "
-                    >
-                        Emitir comprobante →
-                    </button>
-
+                    <p class="text-xs text-slate-400 text-center mt-4">
+                        La emisión oficial a ARCA se realiza desde el detalle del comprobante.
+                    </p>
                 </div>
-
-                <div
-                    class="
-                        mt-5
-                        p-4
-                        rounded-xl
-                        bg-amber-50
-                        text-amber-700
-                        text-xs
-                    "
-                >
-                    La emisión real contra ARCA se conectará
-                    en la siguiente etapa.
-                </div>
-
             </div>
-
         </aside>
 
     </div>
-
 </form>
-
 </div>
-
 {% endblock %}
 
-
 {% block extra_js %}
-
 <script>
+const comprobantesData = {{ comprobantes_aprobados_json|safe }};
+
+const tipoSelect = document.getElementById("tipo_operacion_select");
+const divAsociado = document.getElementById("div_comprobante_asociado");
+const selectAsociado = document.getElementById("comprobante_asociado_select");
+const clienteSelect = document.getElementById("cliente_select");
+const puntoVentaSelect = document.getElementById("punto_venta_select");
+
+function filtrarComprobantes() {
+    const clienteId = parseInt(clienteSelect.value);
+    const puntoVentaId = parseInt(puntoVentaSelect.value);
+    
+    selectAsociado.innerHTML = '<option value="">Seleccionar factura...</option>';
+    
+    if (!clienteId || !puntoVentaId) {
+        selectAsociado.innerHTML = '<option value="">Primero seleccioná Cliente y Punto de Venta</option>';
+        return;
+    }
+
+    const filtrados = comprobantesData.filter(c => c.cliente_id === clienteId && c.punto_venta_id === puntoVentaId && c.tipo.startsWith('F'));
+    
+    if (filtrados.length === 0) {
+        selectAsociado.innerHTML = '<option value="">No hay facturas aprobadas para este cliente y punto de venta</option>';
+        return;
+    }
+
+    filtrados.forEach(c => {
+        const option = document.createElement("option");
+        option.value = c.id;
+        option.textContent = `${c.tipo} ${c.numero_str} - Total: $${c.total}`;
+        selectAsociado.appendChild(option);
+    });
+}
+
+function autocompletarItemsAsociados() {
+    const seleccionado = selectAsociado.value;
+    if (!seleccionado) return;
+
+    const comprobante = comprobantesData.find(c => c.id == seleccionado);
+    if (!comprobante) return;
+
+    const container = document.getElementById("items-container");
+    container.innerHTML = ""; 
+
+    comprobante.items.forEach(item => {
+        agregarItem(item.descripcion, item.cantidad, item.precio, item.alicuota_iva);
+    });
+}
+
+tipoSelect.addEventListener("change", function() {
+    if (this.value === "NC" || this.value === "ND") {
+        divAsociado.classList.remove("hidden");
+        selectAsociado.setAttribute("required", "required");
+        filtrarComprobantes();
+    } else {
+        divAsociado.classList.add("hidden");
+        selectAsociado.removeAttribute("required");
+    }
+});
+
+clienteSelect.addEventListener("change", filtrarComprobantes);
+puntoVentaSelect.addEventListener("change", filtrarComprobantes);
+selectAsociado.addEventListener("change", autocompletarItemsAsociados);
 
 function dinero(valor) {
-    return valor.toLocaleString(
-        "es-AR",
-        {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }
-    );
+    return valor.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-
 
 function calcularTotales() {
-
-    const filas = document.querySelectorAll(
-        ".item-row"
-    );
-
-    let total = 0;
-    let neto = 0;
-    let iva = 0;
+    const filas = document.querySelectorAll(".item-row");
+    let total = 0; let neto = 0; let iva = 0;
 
     filas.forEach(fila => {
-
-        const cantidad = parseFloat(
-            fila.querySelector(
-                '[name="cantidad[]"]'
-            )?.value || 0
-        );
-
-        const precio = parseFloat(
-            fila.querySelector(
-                '[name="precio[]"]'
-            )?.value || 0
-        );
-
-        const alicuota = parseFloat(
-            fila.querySelector(
-                '[name="alicuota_iva[]"]'
-            )?.value || 0
-        );
+        const cantidad = parseFloat(fila.querySelector('[name="cantidad[]"]')?.value || 0);
+        const precio = parseFloat(fila.querySelector('[name="precio[]"]')?.value || 0);
+        const alicuota = parseFloat(fila.querySelector('[name="alicuota_iva[]"]')?.value || 0);
 
         const importe = cantidad * precio;
-
         if (alicuota > 0) {
-
-            const netoLinea =
-                importe /
-                (1 + alicuota / 100);
-
-            const ivaLinea =
-                importe - netoLinea;
-
+            const netoLinea = importe / (1 + alicuota / 100);
             neto += netoLinea;
-            iva += ivaLinea;
-
+            iva += (importe - netoLinea);
         } else {
-
             neto += importe;
-
         }
-
         total += importe;
-
     });
 
-    document.getElementById(
-        "resumen-neto"
-    ).textContent =
-        "$" + dinero(neto);
-
-    document.getElementById(
-        "resumen-iva"
-    ).textContent =
-        "$" + dinero(iva);
-
-    document.getElementById(
-        "resumen-total"
-    ).textContent =
-        "$" + dinero(total);
+    document.getElementById("resumen-neto").textContent = "$" + dinero(neto);
+    document.getElementById("resumen-iva").textContent = "$" + dinero(iva);
+    document.getElementById("resumen-total").textContent = "$" + dinero(total);
 }
 
-
-function agregarItem() {
-
-    const container =
-        document.getElementById(
-            "items-container"
-        );
-
-    const fila = document.createElement(
-        "div"
-    );
-
-    fila.className =
-        "item-row grid grid-cols-12 gap-3";
+function agregarItem(desc = "", cant = 1, prec = 0, alic = 21) {
+    const container = document.getElementById("items-container");
+    const fila = document.createElement("div");
+    fila.className = "item-row grid grid-cols-12 gap-3";
 
     fila.innerHTML = `
         <div class="col-span-12 md:col-span-5">
-            <input
-                name="descripcion[]"
-                placeholder="Descripción"
-                required
-                class="w-full px-4 py-3 rounded-xl border border-slate-200"
-            >
+            <input name="descripcion[]" placeholder="Descripción" value="${desc}" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
         </div>
-
         <div class="col-span-4 md:col-span-2">
-            <input
-                name="cantidad[]"
-                type="number"
-                step="0.001"
-                min="0.001"
-                value="1"
-                required
-                oninput="calcularTotales()"
-                class="w-full px-4 py-3 rounded-xl border border-slate-200"
-            >
+            <input name="cantidad[]" type="number" step="0.001" min="0.001" value="${cant}" required oninput="calcularTotales()" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
         </div>
-
         <div class="col-span-4 md:col-span-2">
-            <input
-                name="precio[]"
-                type="number"
-                step="0.01"
-                min="0"
-                value="0"
-                required
-                oninput="calcularTotales()"
-                class="w-full px-4 py-3 rounded-xl border border-slate-200"
-            >
+            <input name="precio[]" type="number" step="0.01" min="0" value="${prec}" required oninput="calcularTotales()" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
         </div>
-
         <div class="col-span-3 md:col-span-2">
-            <select
-                name="alicuota_iva[]"
-                onchange="calcularTotales()"
-                class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white"
-            >
-                <option value="0">IVA 0%</option>
-                <option value="10.5">IVA 10,5%</option>
-                <option value="21" selected>IVA 21%</option>
-                <option value="27">IVA 27%</option>
+            <select name="alicuota_iva[]" onchange="calcularTotales()" class="w-full px-3 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                <option value="0" ${alic==0 ? 'selected':''}>IVA 0%</option>
+                <option value="10.5" ${alic==10.5 ? 'selected':''}>IVA 10,5%</option>
+                <option value="21" ${alic==21 ? 'selected':''}>IVA 21%</option>
+                <option value="27" ${alic==27 ? 'selected':''}>IVA 27%</option>
             </select>
         </div>
-
         <div class="col-span-1 flex items-center justify-center">
-            <button
-                type="button"
-                onclick="eliminarItem(this)"
-                class="text-slate-400 hover:text-red-600 text-xl"
-            >
-                ×
-            </button>
+            <button type="button" onclick="eliminarItem(this)" class="text-slate-400 hover:text-red-600 text-2xl font-light transition">×</button>
         </div>
     `;
-
     container.appendChild(fila);
-
     calcularTotales();
 }
-
 
 function eliminarItem(button) {
-
-    const filas =
-        document.querySelectorAll(
-            ".item-row"
-        );
-
-    if (filas.length <= 1) {
-        return;
-    }
-
-    button
-        .closest(".item-row")
-        .remove();
-
+    const filas = document.querySelectorAll(".item-row");
+    if (filas.length <= 1) return;
+    button.closest(".item-row").remove();
     calcularTotales();
 }
 
-
-function confirmarEmision() {
-
-    const confirmado = confirm(
-        "¿Querés emitir este comprobante?"
-    );
-
-    if (!confirmado) {
-        return;
-    }
-
-    alert(
-        "La conexión con ARCA se activará en la siguiente etapa."
-    );
+// Iniciar con un item vacío
+if (document.querySelectorAll('.item-row').length === 0) {
+    agregarItem();
 }
-
-
-calcularTotales();
-
 </script>
-
 {% endblock %}
