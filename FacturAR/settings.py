@@ -4,31 +4,41 @@ Django settings for FacturAR project.
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
-
-# Carga las variables del archivo .env al entorno de Python
-load_dotenv()
+import environ
 
 # =========================================================
-# PATHS
+# PATHS & ENVIRON
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Inicializar environ
+env = environ.Env(
+    DEBUG=(bool, False) # Valor por defecto seguro
+)
+
+# Leer el archivo .env si existe (en producción puede estar configurado a nivel SO)
+env_file = os.path.join(BASE_DIR, '.env')
+if os.path.exists(env_file):
+    environ.Env.read_env(env_file)
 
 
 # =========================================================
 # SECURITY
 # =========================================================
 
-SECRET_KEY = 'django-insecure-!^=b4wre)*_v8dgtriw93en_+2d31a!0km9=z+%7480kkuann)'
+# Lee la clave del .env, si no está en producción, el sistema no levantará
+SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = True
+# Si no está en el .env, asume False por el valor por defecto definido arriba
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['*']
+# Convierte automáticamente 'localhost,.corexit.tech' a una lista de Python
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
-ARCA_CUIT_FACTURAR=os.getenv('ARCA_CUIT_FACTURAR')
-ARCA_CERT_PATH=os.getenv('ARCA_CERT_PATH')
-ARCA_KEY_PATH=os.getenv('ARCA_KEY_PATH')
+ARCA_CUIT_FACTURAR = env('ARCA_CUIT_FACTURAR', default='')
+ARCA_CERT_PATH = env('ARCA_CERT_PATH', default='')
+ARCA_KEY_PATH = env('ARCA_KEY_PATH', default='')
 
 
 # =========================================================
@@ -36,14 +46,12 @@ ARCA_KEY_PATH=os.getenv('ARCA_KEY_PATH')
 # =========================================================
 
 SHARED_APPS = [
-
     # Django
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # No auth acá.
-    # Cada tenant tendrá sus propios usuarios.
+    # No auth acá. Cada tenant tendrá sus propios usuarios.
 
     # Django Tenants
     'django_tenants',
@@ -61,7 +69,6 @@ SHARED_APPS = [
 # =========================================================
 
 TENANT_APPS = [
-
     # Autenticación por empresa
     'django.contrib.auth',
     'django.contrib.sessions',
@@ -74,6 +81,9 @@ TENANT_APPS = [
 
     # ARCA
     'arca_gateway',
+    
+    # Gestión de Empleados
+    'users',
 ]
 
 
@@ -82,9 +92,7 @@ TENANT_APPS = [
 # =========================================================
 
 INSTALLED_APPS = SHARED_APPS + [
-    app
-    for app in TENANT_APPS
-    if app not in SHARED_APPS
+    app for app in TENANT_APPS if app not in SHARED_APPS
 ]
 
 
@@ -93,25 +101,16 @@ INSTALLED_APPS = SHARED_APPS + [
 # =========================================================
 
 MIDDLEWARE = [
-
     'django.middleware.security.SecurityMiddleware',
-
     # Tenant según dominio
     'django_tenants.middleware.main.TenantMainMiddleware',
-
     # CORS
     'corsheaders.middleware.CorsMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
-
     'django.middleware.common.CommonMiddleware',
-
     'django.middleware.csrf.CsrfViewMiddleware',
-
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-
     'django.contrib.messages.middleware.MessageMiddleware',
-
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -129,24 +128,14 @@ ROOT_URLCONF = 'FacturAR.urls'
 
 TEMPLATES = [
     {
-        'BACKEND':
-            'django.template.backends.django.DjangoTemplates',
-
-        'DIRS': [
-            BASE_DIR / 'templates',
-        ],
-
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
-
         'OPTIONS': {
             'context_processors': [
-
                 'django.template.context_processors.request',
-
                 'django.contrib.auth.context_processors.auth',
-
                 'django.contrib.messages.context_processors.messages',
-
             ],
         },
     },
@@ -158,7 +147,6 @@ TEMPLATES = [
 # =========================================================
 
 WSGI_APPLICATION = 'FacturAR.wsgi.application'
-
 ASGI_APPLICATION = 'FacturAR.asgi.application'
 
 
@@ -167,26 +155,13 @@ ASGI_APPLICATION = 'FacturAR.asgi.application'
 # =========================================================
 
 DATABASES = {
-
     'default': {
-
-        'ENGINE':
-            'django_tenants.postgresql_backend',
-
-        'NAME':
-            'corex_db',
-
-        'USER':
-            'corex_user',
-
-        'PASSWORD':
-            'corex_password',
-
-        'HOST':
-            '127.0.0.1',
-
-        'PORT':
-            '5434',
+        'ENGINE': 'django_tenants.postgresql_backend',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT', default='5432'),
     }
 }
 
@@ -205,9 +180,7 @@ DATABASE_ROUTERS = (
 # =========================================================
 
 TENANT_MODEL = 'tenant.Tenant'
-
 TENANT_DOMAIN_MODEL = 'tenant.Domain'
-
 PUBLIC_SCHEMA_NAME = 'public'
 
 
@@ -216,9 +189,7 @@ PUBLIC_SCHEMA_NAME = 'public'
 # =========================================================
 
 LOGIN_URL = '/login/'
-
 LOGIN_REDIRECT_URL = '/'
-
 LOGOUT_REDIRECT_URL = '/login/'
 
 
@@ -227,26 +198,10 @@ LOGOUT_REDIRECT_URL = '/login/'
 # =========================================================
 
 AUTH_PASSWORD_VALIDATORS = [
-
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-
-    {
-        'NAME':
-            'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
@@ -255,11 +210,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # =========================================================
 
 LANGUAGE_CODE = 'es-ar'
-
 TIME_ZONE = 'America/Argentina/Buenos_Aires'
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -268,12 +220,8 @@ USE_TZ = True
 # =========================================================
 
 STATIC_URL = '/static/'
-
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 
 # =========================================================
@@ -281,7 +229,6 @@ STATICFILES_DIRS = [
 # =========================================================
 
 MEDIA_URL = '/media/'
-
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
@@ -293,20 +240,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # =========================================================
-# CORS
+# CORS & CSRF
 # =========================================================
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-
-# =========================================================
-# CSRF
-# =========================================================
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
+# Lee los dominios confiables desde el .env
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['http://localhost:8000', 'http://127.0.0.1:8000'])
 
 
 # =========================================================
@@ -314,17 +254,12 @@ CSRF_TRUSTED_ORIGINS = [
 # =========================================================
 
 REST_FRAMEWORK = {
-
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-
     'DEFAULT_AUTHENTICATION_CLASSES': [
-
         'rest_framework.authentication.SessionAuthentication',
-
         'rest_framework.authentication.TokenAuthentication',
-
     ],
 }
 
@@ -333,47 +268,30 @@ REST_FRAMEWORK = {
 # ARCA / FACTURAR
 # =========================================================
 
-FACTURAR_CUIT = ''
+FACTURAR_CUIT = env('FACTURAR_CUIT', default='')
 
 
 # =========================================================
 # ARCA CERTIFICATES
 # =========================================================
 
-ARCA_CERTIFICATES_DIR = (
-    BASE_DIR / 'secrets' / 'arca'
-)
+ARCA_CERTIFICATES_DIR = BASE_DIR / 'secrets' / 'arca'
 
 
 # =========================================================
-# COOKIES
+# COOKIES & PRODUCTION SECURITY
 # =========================================================
 
 SESSION_COOKIE_HTTPONLY = True
-
 CSRF_COOKIE_HTTPONLY = False
 
-
-# =========================================================
-# DEVELOPMENT / PRODUCTION
-# =========================================================
-
 if DEBUG:
-
     SESSION_COOKIE_SECURE = False
-
     CSRF_COOKIE_SECURE = False
-
 else:
-
     SESSION_COOKIE_SECURE = True
-
     CSRF_COOKIE_SECURE = True
-
     SECURE_SSL_REDIRECT = True
-
     SECURE_HSTS_SECONDS = 31536000
-
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-
     SECURE_HSTS_PRELOAD = True

@@ -1,8 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from users.decorators import requiere_rol
+
 
 @login_required
+@requiere_rol(["ADMIN"])
 def dashboard(request):
     return render(
         request,
@@ -14,6 +17,7 @@ def dashboard(request):
 
 
 @login_required
+@requiere_rol(["ADMIN"])
 def configuracion(request):
     return render(
         request,
@@ -36,6 +40,7 @@ from .models import Tenant, MonotributoCategoria
 
 
 @login_required
+@requiere_rol(["ADMIN"])
 def dashboard(request):
 
     tenant = request.tenant
@@ -262,6 +267,7 @@ def dashboard(request):
 
 
 @login_required
+@requiere_rol(["ADMIN"])
 def configuracion(request):
     return render(
         request,
@@ -270,6 +276,7 @@ def configuracion(request):
 
 
 @login_required
+@requiere_rol(["ADMIN"])
 def monotributo(request):
 
     categorias = (

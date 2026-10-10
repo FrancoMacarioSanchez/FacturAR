@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Empleado · FacturAR{% endblock %}
+{% block page_title %}Equipo{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6 flex items-center gap-3">
+        <a href="{% url 'users:empleados_list' %}" class="text-slate-400 hover:text-indigo-600 transition">← Volver</a>
+        <h2 class="text-2xl font-bold text-slate-900">Agregar Empleado</h2>
+    </div>
+
+    <form method="post" class="card bg-white rounded-2xl p-8 border border-slate-100 shadow-sm space-y-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-2 gap-6">
+            <div>
+                <label class="text-sm font-semibold text-slate-700">Nombre de usuario</label>
+                <input type="text" name="username" required class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="text-sm font-semibold text-slate-700">Contraseña temporal</label>
+                <input type="password" name="password" required class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+        </div>
+
+        <div>
+            <label class="text-sm font-semibold text-slate-700">Email (opcional)</label>
+            <input type="email" name="email" class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <div class="border-t border-slate-100 pt-6 grid grid-cols-2 gap-6">
+            <div>
+                <label class="text-sm font-semibold text-slate-700">Rol del empleado</label>
+                <select name="rol" required class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <option value="CAJERO">Cajero / Vendedor</option>
+                    <option value="ADMIN">Administrador / Dueño</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="text-sm font-semibold text-slate-700">Restringir a Caja (opcional)</label>
+                <select name="punto_venta_asignado" class="mt-2 w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <option value="">Cualquier Punto de Venta</option>
+                    {% for pv in puntos_venta %}
+                        <option value="{{ pv.id }}">{{ pv.numero|stringformat:"04d" }} - {{ pv.nombre }}</option>
+                    {% endfor %}
+                </select>
+                <p class="text-xs text-slate-500 mt-1">Si seleccionás uno, el cajero solo podrá facturar ahí.</p>
+            </div>
+        </div>
+
+        <div class="pt-4">
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-xl font-semibold shadow-sm transition">
+                Crear Empleado
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

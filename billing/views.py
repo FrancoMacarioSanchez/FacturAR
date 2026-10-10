@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Sum, Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from users.decorators import requiere_rol
 
 from .models import (
     Cliente,
@@ -180,6 +181,7 @@ from .models import (
 )
 
 @login_required
+@requiere_rol(["ADMIN"])
 def dashboard(request):
     from arca_gateway.models import ArcaConfiguracion
     from django.db.models import Case, When, F
@@ -406,6 +408,7 @@ def dashboard(request):
 
 
 @login_required
+@requiere_rol(["ADMIN", "CAJERO"])
 def comprobantes(request):
     comprobantes_qs = (
         Comprobante.objects
@@ -441,6 +444,7 @@ def comprobantes(request):
 
 
 @login_required
+@requiere_rol(["ADMIN", "CAJERO"])
 def comprobante_detalle(request, pk):
     comprobante = get_object_or_404(
         Comprobante.objects
@@ -457,6 +461,7 @@ def comprobante_detalle(request, pk):
 
 
 @login_required
+@requiere_rol(["ADMIN", "CAJERO"])
 def facturar(request):
     import json
     
@@ -597,6 +602,7 @@ def facturar(request):
 
 
 @login_required
+@requiere_rol(["ADMIN", "CAJERO"])
 def clientes(request):
     clientes_qs = Cliente.objects.all()
     buscar = request.GET.get("buscar", "").strip()
@@ -615,6 +621,7 @@ def clientes(request):
 
 
 @login_required
+@requiere_rol(["ADMIN", "CAJERO"])
 def cliente_detalle(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
 
@@ -652,6 +659,7 @@ def cliente_detalle(request, pk):
 
 
 @login_required
+@requiere_rol(["ADMIN"])
 def puntos_venta(request):
     puntos = PuntoVenta.objects.all().order_by("numero")
 
