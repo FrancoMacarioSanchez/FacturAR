@@ -190,7 +190,7 @@ def firmar_login_ticket(xml):
 def solicitar_token_wsaa(
     cms_base64,
     servicio="wsfe",
-    ambiente="HOMOLOGACION",
+    ambiente="PRODUCCION",
 ):
     url = WSAA_URLS[ambiente]
 
@@ -474,7 +474,7 @@ def delegacion(request):
         .get_or_create(
             defaults={
                 "metodo": "DELEGACION",
-                "ambiente": "HOMOLOGACION",
+                "ambiente": "PRODUCCION",
             }
         )
     )
@@ -608,7 +608,7 @@ def verificar_delegacion(request):
 
 def solicitar_wsfe(
     soap_body,
-    ambiente="HOMOLOGACION",
+    ambiente="PRODUCCION",
     soap_action=None,
 ):
     url = WSFE_URLS[ambiente]
@@ -647,7 +647,7 @@ def obtener_ultimo_comprobante(
     cuit,
     punto_venta,
     tipo_comprobante,
-    ambiente="HOMOLOGACION",
+    ambiente="PRODUCCION",
 ):
     soap_body = f"""<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope
@@ -1252,7 +1252,7 @@ def consultar_comprobante_wsfe(
     punto_venta,
     tipo_comprobante,
     numero_comprobante,
-    ambiente="HOMOLOGACION",
+    ambiente="PRODUCCION",
 ):
     soap_body = f"""<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope
