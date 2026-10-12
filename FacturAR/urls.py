@@ -24,5 +24,7 @@ urlpatterns = [
     path("arca/", include("arca_gateway.urls")),
     path("api/v1/", include("api.urls")),
     path("", billing_views.dashboard, name="dashboard"),
+    path("suscripciones/", include("subscriptions.urls")),
+
     path("users/", include("users.urls", namespace="users")),
 ]

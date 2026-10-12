@@ -61,6 +61,7 @@ SHARED_APPS = [
 
     # API global
     'api',
+    'subscriptions',
 ]
 
 
