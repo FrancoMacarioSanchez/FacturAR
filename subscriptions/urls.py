@@ -21,4 +21,9 @@ urlpatterns = [
         views.uso_actual,
         name="uso_actual",
     ),
+    path(
+        "seleccionar/<slug:slug>/",
+        views.seleccionar_plan,
+        name="seleccionar_plan",
+    ),
 ]

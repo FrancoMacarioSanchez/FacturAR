@@ -1,7 +1,8 @@
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django_tenants.utils import get_public_schema_name
 from django.db import connection
 from django.utils import timezone
@@ -133,3 +134,10 @@ def uso_actual(request):
             "ilimitado": ilimitado,
         },
     )
+@login_required
+def seleccionar_plan(request, slug):
+    messages.info(
+        request,
+        f"La selección del plan {slug.capitalize()} todavía no está habilitada."
+    )
+    return redirect("subscriptions:planes")

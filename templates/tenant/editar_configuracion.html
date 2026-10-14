@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Configuración · FacturAR{% endblock %}
+{% block page_title %}Editar Configuración{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    
+    <div class="mb-7">
+        <h2 class="text-2xl font-bold">Editar información</h2>
+        <p class="text-slate-500 mt-1">Modifica los datos de contacto de tu empresa.</p>
+    </div>
+
+    <div class="card bg-white rounded-2xl p-6">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs uppercase text-slate-500 font-bold">Email</label>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+                
+                <div>
+                    <label class="text-xs uppercase text-slate-500 font-bold">Teléfono</label>
+                    {{ form.telefono }}
+                    {{ form.telefono.errors }}
+                </div>
+                
+                <div>
+                    <label class="text-xs uppercase text-slate-500 font-bold">Dirección</label>
+                    {{ form.direccion }}
+                    {{ form.direccion.errors }}
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <a href="{% url 'tenant:configuracion' %}" 
+                   class="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                    Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

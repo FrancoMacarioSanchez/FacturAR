@@ -12,6 +12,7 @@ urlpatterns = [
         views.configuracion,
         name="configuracion",
     ),
+    path('configuracion/editar/', views.editar_configuracion, name='editar_configuracion'),
 
     path(
         "monotributo/",

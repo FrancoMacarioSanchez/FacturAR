@@ -1,0 +1,624 @@
+
+{% extends "base.html" %}
+
+{% block title %}Planes y precios | FacturAR{% endblock %}
+
+{% block content %}
+<style>
+    .plans-page {
+        --primary: #4f46e5;
+        --primary-dark: #3730a3;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        color: var(--text);
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 36px 22px 60px;
+    }
+
+    .plans-page * {
+        box-sizing: border-box;
+    }
+
+    .plans-hero {
+        text-align: center;
+        max-width: 760px;
+        margin: 0 auto 32px;
+    }
+
+    .plans-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #eef2ff;
+        color: #4338ca;
+        border: 1px solid #e0e7ff;
+        padding: 7px 13px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .plans-hero h1 {
+        margin: 18px 0 12px;
+        font-size: clamp(32px, 5vw, 48px);
+        line-height: 1.1;
+        letter-spacing: -1.8px;
+        font-weight: 850;
+    }
+
+    .plans-hero h1 span {
+        color: var(--primary);
+    }
+
+    .plans-hero p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.8;
+    }
+
+    .plans-billing {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 25px 0 12px;
+        flex-wrap: wrap;
+    }
+
+    .plans-billing button {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #fff;
+        padding: 10px 17px;
+        color: #6b7280;
+        font-weight: 750;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .plans-billing button.active {
+        background: #111827;
+        border-color: #111827;
+        color: #fff;
+    }
+
+    .plans-billing .saving {
+        color: #047857;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+        align-items: stretch;
+        margin-top: 32px;
+    }
+
+    .plan-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 28px;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, .035);
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 18px 42px rgba(15, 23, 42, .09);
+        border-color: #c7d2fe;
+    }
+
+    .plan-card.featured {
+        border: 2px solid var(--primary);
+        box-shadow: 0 16px 45px rgba(79, 70, 229, .12);
+    }
+
+    .plan-popular {
+        position: absolute;
+        top: -13px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: #fff;
+        padding: 7px 14px;
+        border-radius: 999px;
+        white-space: nowrap;
+        font-size: 11px;
+        font-weight: 850;
+        letter-spacing: .04em;
+    }
+
+    .plan-name {
+        font-size: 21px;
+        font-weight: 850;
+        margin: 0 0 9px;
+    }
+
+    .plan-description {
+        color: var(--muted);
+        min-height: 48px;
+        line-height: 1.6;
+        font-size: 13px;
+        margin: 0;
+    }
+
+    .plan-price {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        margin: 25px 0 5px;
+        min-height: 50px;
+    }
+
+    .plan-price .currency {
+        font-size: 18px;
+        font-weight: 750;
+    }
+
+    .plan-price .amount {
+        font-size: clamp(30px, 3vw, 40px);
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        line-height: 1;
+    }
+
+    .plan-price .period {
+        color: var(--muted);
+        font-size: 12px;
+    }
+
+    .plan-billing-note {
+        color: var(--muted);
+        font-size: 12px;
+        min-height: 20px;
+    }
+
+    .plan-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 22px 0;
+    }
+
+    .plan-includes {
+        font-size: 12px;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: 15px;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 26px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        flex: 1;
+    }
+
+    .plan-features li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #374151;
+    }
+
+    .feature-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 19px;
+        height: 19px;
+        min-width: 19px;
+        border-radius: 50%;
+        background: #dcfce7;
+        color: #15803d;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .feature-no {
+        background: #f3f4f6;
+        color: #9ca3af;
+    }
+
+    .feature-soon {
+        display: inline-block;
+        margin-left: 4px;
+        padding: 2px 6px;
+        border-radius: 5px;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .plan-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        min-height: 47px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        padding: 12px 16px;
+        background: #fff;
+        color: #111827;
+        font-size: 13px;
+        font-weight: 850;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .plan-button:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+
+    .plan-button.primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+    }
+
+    .plan-button.primary:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    .plan-button.current {
+        background: #f3f4f6;
+        color: #6b7280;
+        border-color: #e5e7eb;
+        cursor: default;
+    }
+
+    .plan-footnote {
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+        margin-top: 12px;
+        line-height: 1.5;
+    }
+
+    .plans-bottom {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 34px;
+    }
+
+    .plans-bottom-item {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 19px;
+        background: #fff;
+    }
+
+    .plans-bottom-item strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 7px;
+    }
+
+    .plans-bottom-item p {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .plans-help {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 35px;
+    }
+
+    .plans-help a {
+        color: var(--primary);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    @media (max-width: 1000px) {
+        .plans-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .plan-card:last-child {
+            grid-column: 1 / -1;
+        }
+
+        .plans-bottom {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 650px) {
+        .plans-page {
+            padding: 24px 14px 40px;
+        }
+
+        .plans-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .plan-card:last-child {
+            grid-column: auto;
+        }
+
+        .plan-card {
+            padding: 24px;
+        }
+
+        .plans-hero h1 {
+            letter-spacing: -1px;
+        }
+
+        .plan-price .amount {
+            font-size: 38px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .plan-card,
+        .plan-button,
+        .plans-billing button {
+            transition: none;
+        }
+    }
+</style>
+
+<div class="plans-page">
+    <header class="plans-hero">
+        <span class="plans-eyebrow">FacturAR · Planes</span>
+        <h1>El plan ideal para <span>tu negocio.</span></h1>
+        <p>
+            Emití comprobantes electrónicos, administrá tus clientes y mantené
+            tu facturación organizada desde un solo lugar.
+            Elegí el plan que mejor acompaña el crecimiento de tu empresa.
+        </p>
+
+        <div class="plans-billing" aria-label="Frecuencia de facturación">
+            <button type="button" class="active" data-frequency="mensual"
+                    aria-pressed="true">Mensual</button>
+            <button type="button" data-frequency="anual"
+                    aria-pressed="false">Anual</button>
+            <span class="saving">Consultá la promoción anual</span>
+        </div>
+    </header>
+
+    <section class="plans-grid" aria-label="Planes disponibles">
+
+        <!-- STARTER -->
+        <article class="plan-card">
+            <h2 class="plan-name">Starter</h2>
+            <p class="plan-description">
+                Para comenzar a facturar y ordenar la administración de tu negocio.
+            </p>
+
+            <div class="plan-price">
+                <span class="currency">$</span>
+                <span class="amount"
+                      data-monthly="{{ plan_starter.precio_mensual|default:0|floatformat:0 }}"
+                      data-annual="{{ plan_starter.precio_anual|default:0|floatformat:0 }}">
+                    {{ plan_starter.precio_mensual|default:0|floatformat:0 }}
+                </span>
+                <span class="period">/ mes</span>
+            </div>
+            <div class="plan-billing-note" data-note>
+                Facturación mensual
+            </div>
+
+            <div class="plan-divider"></div>
+            <div class="plan-includes">Incluye</div>
+
+            <ul class="plan-features">
+                <li><span class="feature-check">✓</span> Hasta 5 clientes</li>
+                <li><span class="feature-check">✓</span> 1 punto de venta</li>
+                <li><span class="feature-check">✓</span> 1 usuario en total</li>
+                <li><span class="feature-check">✓</span> Gestión de comprobantes</li>
+                <li><span class="feature-check">✓</span> Acceso al panel de control</li>
+                <li><span class="feature-check">✓</span> Soporte estándar</li>
+                <li><span class="feature-check feature-no">×</span> API de integración <span class="feature-soon">No incluida</span></li>
+                <li><span class="feature-check feature-no">×</span> Asistente Aidy <span class="feature-soon">No incluido</span></li>
+                <li><span class="feature-check feature-no">×</span> Aplicación móvil <span class="feature-soon">No incluida</span></li>
+            </ul>
+
+            {% if suscripcion and suscripcion.plan.slug == "starter" %}
+                <button type="button" class="plan-button current" disabled>
+                    Tu plan actual
+                </button>
+            {% else %}
+                <a class="plan-button"
+                   href="{% url 'subscriptions:seleccionar_plan' 'starter' %}">
+                    Elegir Starter
+                </a>
+            {% endif %}
+            <p class="plan-footnote">Ideal para profesionales y pequeños negocios.</p>
+        </article>
+
+        <!-- PYME -->
+        <article class="plan-card featured">
+            <span class="plan-popular">MÁS ELEGIDO</span>
+            <h2 class="plan-name">Pyme</h2>
+            <p class="plan-description">
+                Más capacidad para equipos que necesitan crecer y trabajar mejor.
+            </p>
+
+            <div class="plan-price">
+                <span class="currency">$</span>
+                <span class="amount"
+                      data-monthly="{{ plan_pyme.precio_mensual|default:0|floatformat:0 }}"
+                      data-annual="{{ plan_pyme.precio_anual|default:0|floatformat:0 }}">
+                    {{ plan_pyme.precio_mensual|default:0|floatformat:0 }}
+                </span>
+                <span class="period">/ mes</span>
+            </div>
+            <div class="plan-billing-note" data-note>
+                Facturación mensual
+            </div>
+
+            <div class="plan-divider"></div>
+            <div class="plan-includes">Todo lo de Starter, más</div>
+
+            <ul class="plan-features">
+                <li><span class="feature-check">✓</span> Hasta 50 clientes</li>
+                <li><span class="feature-check">✓</span> Hasta 3 puntos de venta</li>
+                <li><span class="feature-check">✓</span> Hasta 3 usuarios en total</li>
+                <li><span class="feature-check">✓</span> Soporte prioritario</li>
+                <li><span class="feature-check">✓</span> Aidy: hasta 40 consultas diarias por negocio</li>
+                <li><span class="feature-check feature-no">×</span> API de integración <span class="feature-soon">Próximamente</span></li>
+                <li><span class="feature-check feature-no">×</span> Aplicación móvil <span class="feature-soon">Próximamente</span></li>
+            </ul>
+
+            {% if suscripcion and suscripcion.plan.slug == "pyme" %}
+                <button type="button" class="plan-button current" disabled>
+                    Tu plan actual
+                </button>
+            {% else %}
+                <a class="plan-button primary"
+                   href="{% url 'subscriptions:seleccionar_plan' 'pyme' %}">
+                    Elegir Pyme
+                </a>
+            {% endif %}
+            <p class="plan-footnote">Para comercios y equipos en crecimiento.</p>
+        </article>
+
+        <!-- EMPRESA -->
+        <article class="plan-card">
+            <h2 class="plan-name">Empresa</h2>
+            <p class="plan-description">
+                Máxima capacidad para operaciones con mayores necesidades.
+            </p>
+
+            <div class="plan-price">
+                <span class="currency">$</span>
+                <span class="amount"
+                      data-monthly="{{ plan_empresa.precio_mensual|default:0|floatformat:0 }}"
+                      data-annual="{{ plan_empresa.precio_anual|default:0|floatformat:0 }}">
+                    {{ plan_empresa.precio_mensual|default:0|floatformat:0 }}
+                </span>
+                <span class="period">/ mes</span>
+            </div>
+            <div class="plan-billing-note" data-note>
+                Facturación mensual
+            </div>
+
+            <div class="plan-divider"></div>
+            <div class="plan-includes">Todo lo de Pyme, más</div>
+
+            <ul class="plan-features">
+                <li><span class="feature-check">✓</span> Clientes ilimitados</li>
+                <li><span class="feature-check">✓</span> Hasta 30 puntos de venta</li>
+                <li><span class="feature-check">✓</span> Hasta 30 usuarios en total</li>
+                <li><span class="feature-check">✓</span> Soporte exclusivo</li>
+                <li><span class="feature-check">✓</span> Acceso comercial a la API <span class="feature-soon">Según disponibilidad</span></li>
+                <li><span class="feature-check">✓</span> Aidy sin límite comercial</li>
+                <li><span class="feature-check">✓</span> Aplicación móvil <span class="feature-soon">Según disponibilidad</span></li>
+            </ul>
+
+            {% if suscripcion and suscripcion.plan.slug == "empresa" %}
+                <button type="button" class="plan-button current" disabled>
+                    Tu plan actual
+                </button>
+            {% else %}
+                <a class="plan-button"
+                   href="{% url 'subscriptions:seleccionar_plan' 'empresa' %}">
+                    Elegir Empresa
+                </a>
+            {% endif %}
+            <p class="plan-footnote">Para empresas con necesidades avanzadas.</p>
+        </article>
+    </section>
+
+    <section class="plans-bottom" aria-label="Información adicional">
+        <div class="plans-bottom-item">
+            <strong>🔒 Tus datos siguen siendo tuyos</strong>
+            <p>Si cambiás a un plan inferior, tus datos existentes no se eliminan. Los límites se aplican a las nuevas altas.</p>
+        </div>
+        <div class="plans-bottom-item">
+            <strong>🧾 Facturación electrónica</strong>
+            <p>La emisión de comprobantes está sujeta a la configuración de ARCA y a la disponibilidad operativa de cada función.</p>
+        </div>
+        <div class="plans-bottom-item">
+            <strong>🚀 Funciones en desarrollo</strong>
+            <p>Las funciones marcadas como próximas todavía pueden no estar disponibles, aunque tu plan las contemple comercialmente.</p>
+        </div>
+    </section>
+
+    <div class="plans-help">
+        ¿Tenés dudas sobre qué plan elegir?
+        <a href="mailto:soporte@facturar.com">Contactá a nuestro equipo</a>.
+    </div>
+</div>
+
+<script>
+(function () {
+    const buttons = document.querySelectorAll(".plans-billing button");
+    const prices = document.querySelectorAll(".plan-price .amount");
+
+    function formatPrice(value) {
+        const number = Number(value || 0);
+        return new Intl.NumberFormat("es-AR", {
+            maximumFractionDigits: 0
+        }).format(number);
+    }
+
+    function setFrequency(frequency) {
+        buttons.forEach(function (button) {
+            const active = button.dataset.frequency === frequency;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+
+        prices.forEach(function (price) {
+            const value = frequency === "anual"
+                ? price.dataset.annual
+                : price.dataset.monthly;
+
+            price.textContent = formatPrice(value);
+
+            const card = price.closest(".plan-card");
+            const note = card.querySelector("[data-note]");
+            const period = card.querySelector(".plan-price .period");
+
+            if (frequency === "anual") {
+                period.textContent = "/ mes";
+                note.textContent = "Precio mensual equivalente del plan anual";
+            } else {
+                period.textContent = "/ mes";
+                note.textContent = "Facturación mensual";
+            }
+        });
+    }
+
+    buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            setFrequency(button.dataset.frequency);
+        });
+    });
+
+    setFrequency("mensual");
+})();
+</script>
+{% endblock %}

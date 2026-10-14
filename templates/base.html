@@ -292,5 +292,42 @@
 {% block extra_js %}
 {% endblock %}
 
+<!-- ========================================== -->
+    <!-- BOTÓN FLOTANTE DE AYUDA -->
+    <!-- ========================================== -->
+    <a href="https://corexit.tech/dashboard/portal" 
+       target="_blank" 
+       rel="noopener noreferrer"
+       class="
+           fixed bottom-6 right-6 z-50 
+           flex items-center justify-center 
+           w-14 h-14 rounded-full shadow-xl 
+           bg-blue-600 text-white 
+           hover:bg-blue-700 hover:scale-105 hover:shadow-2xl 
+           transition-all duration-300 
+           group cursor-pointer
+       ">
+        
+        <!-- Ícono de Signo de pregunta (SVG) -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-7 h-7">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+        </svg>
+
+        <!-- Tooltip que aparece al hacer hover -->
+        <span class="
+            absolute right-16 
+            px-3 py-1.5 rounded-lg 
+            bg-slate-800 text-white text-sm font-medium 
+            opacity-0 group-hover:opacity-100 
+            transition-opacity duration-300 pointer-events-none 
+            whitespace-nowrap shadow-lg
+        ">
+            Necesito ayuda
+            <!-- Flechita del tooltip -->
+            <div class="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
+        </span>
+        
+    </a>
+
 </body>
 </html>

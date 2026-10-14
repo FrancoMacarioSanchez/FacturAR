@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from tenant.forms import EditarTenantForm
 from users.decorators import requiere_rol
 
 
@@ -19,11 +20,22 @@ def dashboard(request):
 @login_required
 @requiere_rol(["ADMIN"])
 def configuracion(request):
+    # Guardamos el tenant en una variable corta para mayor comodidad
+    t = request.tenant
+
     return render(
         request,
         "tenant/configuracion.html",
         {
-            "tenant": request.tenant,
+            # Pasamos cada dato por separado al contexto
+            "nombre": t.nombre,
+            "razon_social": t.razon_social,
+            "cuit": t.cuit,
+            # Ejecutamos la función get_condicion... aquí mismo para pasar solo el texto
+            "condicion_fiscal": t.get_condicion_fiscal_display() if t.condicion_fiscal else "—",
+            "email": t.email,
+            "telefono": t.telefono,
+            "direccion": t.direccion,
         },
     )
     
@@ -268,15 +280,6 @@ def dashboard(request):
 
 @login_required
 @requiere_rol(["ADMIN"])
-def configuracion(request):
-    return render(
-        request,
-        "tenant/configuracion.html",
-    )
-
-
-@login_required
-@requiere_rol(["ADMIN"])
 def monotributo(request):
 
     categorias = (
@@ -324,3 +327,21 @@ def monotributo(request):
             "categoria_tenant": categoria_tenant,
         },
     )
+from django.shortcuts import render, redirect
+@login_required
+def editar_configuracion(request):
+    t = request.tenant
+
+    if request.method == 'POST':
+        # Cargamos los datos del formulario sobre la instancia del tenant actual
+        form = EditarTenantForm(request.POST, instance=t)
+        if form.is_valid():
+            form.save() # Guarda solo el email, telefono y direccion
+            return redirect('configuracion') # Redirige de vuelta a la pantalla de ver datos
+    else:
+        # Si entra por GET, mostramos el formulario pre-cargado con los datos actuales
+        form = EditarTenantForm(instance=t)
+
+    return render(request, "tenant/editar_configuracion.html", {
+        "form": form
+    })

@@ -1,20 +1,33 @@
-from decimal import Decimal, InvalidOperation
+
+import base64
+import io
+import json
+import re
+
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
+
+import qrcode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Sum, Count
+from django.db.models import Sum, Case, When, F
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from users.decorators import requiere_rol
 
+from users.decorators import requiere_rol
+from arca_gateway.models import ArcaConfiguracion
 from .models import (
     Cliente,
     Comprobante,
     ComprobanteItem,
     PuntoVenta,
 )
+from subscriptions.services import comprobar_limite
+
 
 
 def _decimal(value, default="0"):
@@ -493,6 +506,28 @@ def facturar(request):
         })
 
     if request.method == "POST":
+        
+        try:
+            from subscriptions.services import obtener_suscripcion_tenant
+
+            suscripcion = obtener_suscripcion_tenant(request.tenant)
+
+            if not suscripcion.vigente:
+                messages.warning(
+                    request,
+                    "Tu suscripción no está activa. "
+                    "Consultá los planes disponibles."
+                )
+                return redirect("subscriptions:planes")
+
+        except Exception:
+            messages.error(
+                request,
+                "No se pudo verificar tu suscripción. "
+                "Intentá nuevamente o contactá a soporte."
+            )
+            return redirect("billing:facturar")
+
         tipo_solicitado = request.POST.get("tipo", "F")
         punto_venta_id = request.POST.get("punto_venta")
         cliente_id = request.POST.get("cliente")
@@ -686,6 +721,61 @@ def puntos_venta(request):
         "billing/puntos_venta.html",
         {"puntos": puntos},
     )
+@login_required
+@requiere_rol(["ADMIN"])
+def puntos_venta(request):
+    puntos = PuntoVenta.objects.all().order_by("numero")
+
+    if request.method == "POST":
+        numero = request.POST.get("numero", "").strip()
+        nombre = request.POST.get("nombre", "").strip()
+
+        if not numero or not nombre:
+            messages.error(request, "Completá número y nombre.")
+            return redirect("billing:puntos_venta")
+
+        try:
+            comprobar_limite(request.tenant, "puntos_venta")
+        except PermissionDenied as exc:
+            messages.warning(
+                request,
+                f"{exc} Para agregar otro punto de venta, "
+                "actualizá tu plan."
+            )
+            return redirect("subscriptions:planes")
+
+        try:
+            numero = int(numero)
+            if numero <= 0:
+                raise ValueError("El número debe ser positivo.")
+
+            with transaction.atomic():
+                PuntoVenta.objects.create(
+                    numero=numero,
+                    nombre=nombre,
+                )
+
+            messages.success(request, "Punto de venta creado.")
+
+        except ValueError:
+            messages.error(
+                request,
+                "Ingresá un número de punto de venta válido."
+            )
+        except Exception:
+            messages.error(
+                request,
+                "No se pudo crear el punto de venta."
+            )
+
+        return redirect("billing:puntos_venta")
+
+    return render(
+        request,
+        "billing/puntos_venta.html",
+        {"puntos": puntos},
+    )
+
     
 
 @login_required
